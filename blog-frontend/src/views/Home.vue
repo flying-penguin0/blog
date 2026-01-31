@@ -7,47 +7,61 @@
         <div class="content-wrapper">
           <div class="article-list">
             <div class="list-header">
-              <h2>最新文章</h2>
-              <div class="filters">
-                <el-select 
-                  v-model="filters.categoryId" 
-                  placeholder="选择分类" 
-                  clearable
-                  @change="handleFilterChange"
-                  style="width: 150px; margin-right: 10px"
-                >
-                  <el-option 
-                    v-for="category in categories" 
-                    :key="category.id" 
-                    :label="category.name" 
-                    :value="category.id"
-                  />
-                </el-select>
-                <el-select 
-                  v-model="filters.tagId" 
-                  placeholder="选择标签" 
-                  clearable
-                  @change="handleFilterChange"
-                  style="width: 150px; margin-right: 10px"
-                >
-                  <el-option 
-                    v-for="tag in tags" 
-                    :key="tag.id" 
-                    :label="tag.name" 
-                    :value="tag.id"
-                  />
-                </el-select>
-                <el-input 
-                  v-model="filters.keyword" 
-                  placeholder="搜索文章..." 
-                  clearable
-                  @keyup.enter="handleFilterChange"
-                  style="width: 200px"
-                >
-                  <template #append>
-                    <el-button icon="Search" @click="handleFilterChange" />
-                  </template>
-                </el-input>
+              <div class="header-content">
+                <div class="header-left">
+                  <h2>📝 最新文章</h2>
+                  <p class="subtitle">探索新的知识与见解</p>
+                </div>
+                <div class="header-right">
+                  <div class="filters">
+                    <el-select 
+                      v-model="filters.categoryId" 
+                      placeholder="选择分类" 
+                      clearable
+                      @change="handleCategoryChange"
+                      size="large"
+                      style="width: 140px"
+                    >
+                      <el-option 
+                        v-for="category in categories" 
+                        :key="category.id" 
+                        :label="category.name" 
+                        :value="category.id"
+                      />
+                    </el-select>
+                    <el-select 
+                      v-model="filters.tagId" 
+                      placeholder="选择标签" 
+                      clearable
+                      @change="handleFilterChange"
+                      :disabled="!filters.categoryId"
+                      size="large"
+                      style="width: 140px"
+                    >
+                      <el-option 
+                        v-for="tag in tags" 
+                        :key="tag.id" 
+                        :label="tag.name" 
+                        :value="tag.id"
+                      />
+                    </el-select>
+                    <el-input 
+                      v-model="filters.keyword" 
+                      placeholder="搜索文章..." 
+                      clearable
+                      @keyup.enter="handleFilterChange"
+                      size="large"
+                      style="width: 240px"
+                    >
+                      <template #prefix>
+                        <el-icon><Search /></el-icon>
+                      </template>
+                      <template #append>
+                        <el-button icon="Search" @click="handleFilterChange" />
+                      </template>
+                    </el-input>
+                  </div>
+                </div>
               </div>
             </div>
             <div v-if="loading" class="loading">加载中...</div>
@@ -144,7 +158,7 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { getArticleList, getHotArticles, getCategoryList, getTagList } from '@/api/article'
 import { getLatestAnnouncements } from '@/api/announcement'
-import { View } from '@element-plus/icons-vue'
+import { View, Search } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
 import Header from '@/components/Header.vue'
 
@@ -228,9 +242,10 @@ const fetchCategories = async () => {
   }
 }
 
-const fetchTags = async () => {
+const fetchTags = async (categoryId = null) => {
   try {
-    const res = await getTagList()
+    const params = categoryId ? { categoryId } : {}
+    const res = await getTagList(params)
     tags.value = res.data || []
   } catch (error) {
     console.error('获取标签列表失败:', error)
@@ -256,6 +271,19 @@ const handleFilterChange = () => {
   fetchArticles()
 }
 
+const handleCategoryChange = (categoryId) => {
+  // 清空标签选择
+  filters.value.tagId = null
+  // 根据分类加载标签
+  if (categoryId) {
+    fetchTags(categoryId)
+  } else {
+    // 如果清空分类，清空标签列表
+    tags.value = []
+  }
+  handleFilterChange()
+}
+
 const filterByCategory = (categoryId) => {
   filters.value.categoryId = categoryId
   filters.value.tagId = null
@@ -273,7 +301,7 @@ onMounted(() => {
   fetchHotArticles()
   fetchAnnouncements()
   fetchCategories()
-  fetchTags()
+  // 不在初始化时加载标签，等用户选择分类后再加载
   if (userStore.token) {
     userStore.fetchUserInfo()
   }
@@ -300,26 +328,98 @@ onMounted(() => {
 .article-list {
   min-width: 0;
   
-  h2 {
-    margin-bottom: 20px;
-  }
-  
   .list-header {
-    background: #fff;
-    border-radius: 8px;
-    padding: 20px;
+    background: rgb(64, 158, 255);
+    border-radius: 12px;
+    padding: 25px 30px;
     margin-bottom: 20px;
+    box-shadow: 0 4px 20px rgba(64, 158, 255, 0.25);
     
-    h2 {
-      margin: 0 0 15px 0;
-      font-size: 24px;
-      color: #333;
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 30px;
+    }
+    
+    .header-left {
+      flex-shrink: 0;
+      
+      h2 {
+        margin: 0 0 6px 0;
+        font-size: 26px;
+        color: #fff;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+      }
+      
+      .subtitle {
+        margin: 0;
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 400;
+      }
+    }
+    
+    .header-right {
+      flex: 1;
+      display: flex;
+      justify-content: flex-end;
     }
     
     .filters {
       display: flex;
       gap: 10px;
-      flex-wrap: wrap;
+      align-items: center;
+      
+      :deep(.el-input__wrapper) {
+        background: #fff;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border: 1px solid transparent;
+        border-radius: 8px;
+        transition: all 0.3s;
+        
+        &:hover {
+          box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+          border-color: rgb(64, 158, 255);
+        }
+        
+        &.is-focus {
+          box-shadow: 0 0 0 1px rgb(64, 158, 255) inset;
+          border-color: rgb(64, 158, 255);
+        }
+      }
+      
+      :deep(.el-select) {
+        .el-input__wrapper {
+          background: #fff;
+          border-radius: 8px;
+          
+          &:hover {
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+            border-color: rgb(64, 158, 255);
+          }
+        }
+      }
+      
+      :deep(.el-input-group__append) {
+        background: rgb(64, 158, 255);
+        border-color: rgb(64, 158, 255);
+        box-shadow: none;
+        border-radius: 0 8px 8px 0;
+        
+        .el-button {
+          color: #fff;
+          
+          &:hover {
+            background: rgb(102, 177, 255);
+          }
+        }
+      }
+      
+      :deep(.el-input-group__prepend) {
+        border-radius: 8px 0 0 8px;
+      }
     }
   }
 }
@@ -455,10 +555,6 @@ onMounted(() => {
         color: #666;
         line-height: 1.6;
         margin-bottom: 8px;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
       }
       
       .date {
@@ -590,17 +686,36 @@ onMounted(() => {
   
   .article-list {
     .list-header {
-      padding: 15px;
+      padding: 20px;
+      border-radius: 10px;
       
-      h2 {
-        font-size: 20px;
+      .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
       }
       
-      .filters {
+      .header-left {
+        h2 {
+          font-size: 22px;
+        }
+        
+        .subtitle {
+          font-size: 13px;
+        }
+      }
+      
+      .header-right {
         width: 100%;
         
-        .el-select, .el-input {
-          width: 100% !important;
+        .filters {
+          width: 100%;
+          flex-direction: column;
+          gap: 10px;
+          
+          .el-select, .el-input {
+            width: 100% !important;
+          }
         }
       }
     }

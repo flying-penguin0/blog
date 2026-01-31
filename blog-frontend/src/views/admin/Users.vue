@@ -84,8 +84,14 @@
                 ok-text="确定"
                 cancel-text="取消"
                 @confirm="toggleStatus(record)"
+                :disabled="userStore.user && record.id === userStore.user.id"
               >
-                <a-button type="link" size="small" :danger="record.status === 1">
+                <a-button 
+                  type="link" 
+                  size="small" 
+                  :danger="record.status === 1"
+                  :disabled="userStore.user && record.id === userStore.user.id"
+                >
                   {{ record.status === 1 ? '禁用' : '启用' }}
                 </a-button>
               </a-popconfirm>
@@ -107,16 +113,23 @@
           <a-input v-model:value="editForm.username" disabled />
         </a-form-item>
         <a-form-item label="昵称">
-          <a-input v-model:value="editForm.nickname" placeholder="请输入昵称" />
+          <a-input 
+            v-model:value="editForm.nickname" 
+            placeholder="请输入昵称（2-20个字符）"
+            :maxlength="20"
+          />
         </a-form-item>
         <a-form-item label="邮箱">
           <a-input v-model:value="editForm.email" placeholder="请输入邮箱" />
         </a-form-item>
-        <a-form-item label="角色">
-          <a-select v-model:value="editForm.role">
-            <a-select-option value="admin">管理员</a-select-option>
-            <a-select-option value="user">普通用户</a-select-option>
-          </a-select>
+        <a-form-item label="个性签名">
+          <a-textarea 
+            v-model:value="editForm.signature" 
+            placeholder="请输入个性签名" 
+            :rows="3"
+            :maxlength="100"
+            show-count
+          />
         </a-form-item>
       </a-form>
     </a-modal>
@@ -132,7 +145,10 @@ import {
   UserOutlined
 } from '@ant-design/icons-vue'
 import { getUserList, updateUser } from '@/api/user'
+import { useUserStore } from '@/stores/user'
 import dayjs from 'dayjs'
+
+const userStore = useUserStore()
 
 const loading = ref(false)
 const saving = ref(false)
@@ -148,7 +164,7 @@ const editForm = ref({
   username: '',
   nickname: '',
   email: '',
-  role: 'user'
+  signature: ''
 })
 
 const pagination = reactive({
@@ -223,27 +239,45 @@ const editUser = (record) => {
     username: record.username,
     nickname: record.nickname,
     email: record.email,
-    role: record.role
+    signature: record.signature || ''
   }
   showEditDialog.value = true
 }
 
 const saveUser = async () => {
+  // 验证昵称
+  if (!editForm.value.nickname || editForm.value.nickname.trim().length < 2) {
+    message.error('昵称长度不能少于2个字符')
+    return
+  }
+  if (editForm.value.nickname.trim().length > 20) {
+    message.error('昵称长度不能超过20个字符')
+    return
+  }
+  
   saving.value = true
   try {
-    await updateUser(editForm.value.id, editForm.value)
+    await updateUser(editForm.value.id, {
+      ...editForm.value,
+      nickname: editForm.value.nickname.trim()
+    })
     message.success('更新成功')
     showEditDialog.value = false
     loadUsers()
   } catch (error) {
     console.error('更新失败:', error)
-    message.error('更新失败')
   } finally {
     saving.value = false
   }
 }
 
 const toggleStatus = async (record) => {
+  // 检查是否是当前登录用户
+  if (userStore.user && record.id === userStore.user.id) {
+    message.warning('不能禁用自己的账号')
+    return
+  }
+  
   try {
     const newStatus = record.status === 1 ? 0 : 1
     await updateUser(record.id, { ...record, status: newStatus })

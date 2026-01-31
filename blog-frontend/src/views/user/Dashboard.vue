@@ -62,7 +62,7 @@
             <a @click="viewArticle(record.id)">{{ record.title }}</a>
           </template>
           <template v-else-if="column.key === 'status'">
-            <a-tag :color="record.status === 'published' ? 'success' : 'default'">
+            <a-tag :color="record.status === 'published' ? 'green' : 'orange'">
               {{ record.status === 'published' ? '已发布' : '草稿' }}
             </a-tag>
           </template>
@@ -198,7 +198,12 @@ onMounted(() => {
 <style scoped lang="scss">
 .user-dashboard {
   .stat-card {
-    border-radius: 8px;
+    transition: all 0.3s;
+    
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    }
     
     &.stat-card-blue {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);

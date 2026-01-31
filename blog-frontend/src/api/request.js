@@ -50,13 +50,21 @@ request.interceptors.response.use(
         }
       }
       
-      return Promise.reject(new Error(res.message || '请求失败'))
+      // 创建一个错误对象，标记为已处理
+      const error = new Error(res.message || '请求失败')
+      error.HANDLED = true // 标记错误已经被处理过
+      return Promise.reject(error)
     }
     
     return res
   },
   error => {
     console.error('响应错误:', error)
+    
+    // 如果错误已经被处理过（业务错误），直接返回，不再显示
+    if (error.HANDLED) {
+      return Promise.reject(error)
+    }
     
     let message = '网络错误'
     if (error.response) {

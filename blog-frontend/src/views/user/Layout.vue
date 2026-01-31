@@ -37,6 +37,18 @@
           </template>
           <span>我的评论</span>
         </a-menu-item>
+        <a-menu-item key="/user/messages">
+          <template #icon>
+            <MessageOutlined />
+          </template>
+          <span>我的留言</span>
+        </a-menu-item>
+        <a-menu-item key="/user/chat-messages">
+          <template #icon>
+            <WechatOutlined />
+          </template>
+          <span>我的聊天</span>
+        </a-menu-item>
       </a-menu>
     </a-layout-sider>
 
@@ -71,7 +83,7 @@
           </a-button>
           <a-dropdown>
             <div class="user-info">
-              <a-avatar :size="32" :src="userStore.user?.avatar">
+              <a-avatar :size="28" :src="userStore.user?.avatar">
                 <template #icon><UserOutlined /></template>
               </a-avatar>
               <span class="username">{{ userStore.user?.username }}</span>
@@ -128,7 +140,11 @@
           <a-input v-model:value="profileForm.username" disabled />
         </a-form-item>
         <a-form-item label="昵称">
-          <a-input v-model:value="profileForm.nickname" placeholder="请输入昵称" />
+          <a-input 
+            v-model:value="profileForm.nickname" 
+            placeholder="请输入昵称（2-20个字符）"
+            :maxlength="20"
+          />
         </a-form-item>
         <a-form-item label="邮箱">
           <a-input v-model:value="profileForm.email" placeholder="请输入邮箱" />
@@ -187,6 +203,8 @@ import {
   FileTextOutlined,
   UserOutlined,
   CommentOutlined,
+  MessageOutlined,
+  WechatOutlined,
   HomeOutlined,
   LogoutOutlined,
   MenuUnfoldOutlined,
@@ -229,7 +247,9 @@ const currentPageTitle = computed(() => {
     '/user/dashboard': '数据统计',
     '/user/articles': '我的文章',
     '/user/editor': '文章编辑',
-    '/user/comments': '我的评论'
+    '/user/comments': '我的评论',
+    '/user/messages': '我的留言',
+    '/user/chat-messages': '我的聊天'
   }
   return titles[route.path] || '个人中心'
 })
@@ -287,6 +307,16 @@ const handleAvatarChange = (file) => {
 
 // 保存个人信息
 const saveProfile = async () => {
+  // 验证昵称
+  if (!profileForm.value.nickname || profileForm.value.nickname.trim().length < 2) {
+    message.error('昵称长度不能少于2个字符')
+    return
+  }
+  if (profileForm.value.nickname.trim().length > 20) {
+    message.error('昵称长度不能超过20个字符')
+    return
+  }
+  
   savingProfile.value = true
   try {
     let avatarUrl = profileForm.value.avatar
@@ -299,7 +329,7 @@ const saveProfile = async () => {
 
     // 更新用户信息
     await updateUserInfo({
-      nickname: profileForm.value.nickname,
+      nickname: profileForm.value.nickname.trim(),
       email: profileForm.value.email,
       avatar: avatarUrl,
       signature: profileForm.value.signature
@@ -312,7 +342,6 @@ const saveProfile = async () => {
     showProfileDialog.value = false
   } catch (error) {
     console.error('更新失败:', error)
-    message.error('更新失败，请重试')
   } finally {
     savingProfile.value = false
   }
@@ -417,6 +446,8 @@ const changePassword = async () => {
   .header {
     background: #fff;
     padding: 0 24px;
+    height: 56px;
+    line-height: 56px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     display: flex;
     justify-content: space-between;
@@ -460,10 +491,10 @@ const changePassword = async () => {
       .user-info {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 8px;
         cursor: pointer;
-        padding: 8px 16px;
-        border-radius: 20px;
+        padding: 0px 16px;
+        border-radius: 12px;
         transition: all 0.3s;
         
         &:hover {
@@ -481,12 +512,40 @@ const changePassword = async () => {
   
   .content {
     background: #fff;
-    min-height: calc(100vh - 64px);
+    min-height: calc(100vh - 56px);
     
     &.editor-content {
       margin: 0;
       padding: 0;
       border-radius: 0;
+      background: #fff;
+    }
+  }
+}
+
+// 优化下拉菜单样式
+:deep(.ant-dropdown) {
+  .ant-dropdown-menu {
+    padding: 4px 0;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    min-width: 160px;
+    
+    .ant-dropdown-menu-item {
+      padding: 10px 20px;
+      line-height: 1.5;
+      
+      &:hover {
+        background: #f0f7ff;
+      }
+      
+      .anticon {
+        margin-right: 8px;
+      }
+    }
+    
+    .ant-dropdown-menu-item-divider {
+      margin: 4px 0;
     }
   }
 }

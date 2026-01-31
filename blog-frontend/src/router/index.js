@@ -29,6 +29,18 @@ const router = createRouter({
       meta: { title: '留言板' }
     },
     {
+      path: '/about',
+      name: 'about',
+      component: () => import('@/views/About.vue'),
+      meta: { title: '关于' }
+    },
+    {
+      path: '/chatroom',
+      name: 'chatroom',
+      component: () => import('@/views/ChatRoom.vue'),
+      meta: { title: '聊天室' }
+    },
+    {
       path: '/article/:id',
       name: 'article-detail',
       component: () => import('@/views/ArticleDetail.vue'),
@@ -62,7 +74,7 @@ const router = createRouter({
           path: 'dashboard',
           name: 'admin-dashboard',
           component: () => import('@/views/admin/Dashboard.vue'),
-          meta: { title: '仪表板' }
+          meta: { title: '数据统计' }
         },
         {
           path: 'articles',
@@ -111,6 +123,12 @@ const router = createRouter({
           name: 'admin-messages',
           component: () => import('@/views/admin/Messages.vue'),
           meta: { title: '留言管理' }
+        },
+        {
+          path: 'chatroom',
+          name: 'admin-chatroom',
+          component: () => import('@/views/admin/ChatRoom.vue'),
+          meta: { title: '聊天室管理' }
         }
       ]
     },
@@ -143,6 +161,18 @@ const router = createRouter({
           name: 'user-comments',
           component: () => import('@/views/user/Comments.vue'),
           meta: { title: '我的评论' }
+        },
+        {
+          path: 'messages',
+          name: 'user-messages',
+          component: () => import('@/views/user/Messages.vue'),
+          meta: { title: '我的留言' }
+        },
+        {
+          path: 'chat-messages',
+          name: 'user-chat-messages',
+          component: () => import('@/views/user/ChatMessages.vue'),
+          meta: { title: '我的聊天' }
         }
       ]
     }
@@ -154,7 +184,7 @@ router.beforeEach((to, from, next) => {
   const userStore = useUserStore()
   
   // 设置页面标题
-  document.title = to.meta.title ? `${to.meta.title} - 博客系统` : '博客系统'
+  document.title = to.meta.title ? `${to.meta.title} - 基于DeepSeek开放平台的个人知识博客` : '基于DeepSeek开放平台的个人知识博客'
   
   // 需要登录的页面
   if (to.meta.requiresAuth && !userStore.token) {

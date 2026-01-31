@@ -7,8 +7,13 @@ export const useUserStore = defineStore('user', () => {
   const user = ref(null)
   
   // 登录
-  const login = async (username, password) => {
-    const res = await loginApi({ username, password })
+  const login = async (username, password, captchaKey, captchaCode) => {
+    const res = await loginApi({ 
+      username, 
+      password,
+      captchaKey,
+      captchaCode
+    })
     token.value = res.data.token
     user.value = res.data.user
     localStorage.setItem('token', token.value)

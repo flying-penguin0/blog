@@ -15,6 +15,13 @@ export const getMessageList = (params) => {
 }
 
 /**
+ * 获取我的留言列表
+ */
+export const getMyMessages = (params) => {
+  return request.get('/message/my', { params })
+}
+
+/**
  * 删除留言
  */
 export const deleteMessage = (id) => {

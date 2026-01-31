@@ -71,7 +71,7 @@
             </a-tooltip>
           </template>
           <template v-else-if="column.key === 'status'">
-            <a-tag :color="record.status === 'published' ? 'success' : 'warning'">
+            <a-tag :color="record.status === 'published' ? 'green' : 'orange'">
               {{ record.status === 'published' ? '公开' : '私密' }}
             </a-tag>
             <a-switch

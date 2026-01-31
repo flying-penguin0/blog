@@ -13,6 +13,47 @@
         </div>
       </template>
 
+      <!-- 搜索栏 -->
+      <a-form layout="inline" :model="searchForm" class="search-form">
+        <a-form-item label="标签名称">
+          <a-input
+            v-model:value="searchForm.name"
+            placeholder="请输入标签名称"
+            allow-clear
+            style="width: 200px"
+          />
+        </a-form-item>
+        <a-form-item label="所属分类">
+          <a-select
+            v-model:value="searchForm.categoryId"
+            placeholder="请选择分类"
+            allow-clear
+            style="width: 150px"
+            :loading="categoriesLoading"
+          >
+            <a-select-option v-for="category in categories" :key="category.id" :value="category.id">
+              {{ category.name }}
+            </a-select-option>
+          </a-select>
+        </a-form-item>
+        <a-form-item>
+          <a-space>
+            <a-button type="primary" @click="handleSearch">
+              <template #icon>
+                <SearchOutlined />
+              </template>
+              搜索
+            </a-button>
+            <a-button @click="handleReset">
+              <template #icon>
+                <ReloadOutlined />
+              </template>
+              重置
+            </a-button>
+          </a-space>
+        </a-form-item>
+      </a-form>
+
       <!-- 标签列表 -->
       <a-table
         :columns="columns"
@@ -88,7 +129,7 @@
 <script setup>
 import { ref, onMounted, computed, reactive } from 'vue'
 import { message } from 'ant-design-vue'
-import { PlusOutlined } from '@ant-design/icons-vue'
+import { PlusOutlined, SearchOutlined, ReloadOutlined } from '@ant-design/icons-vue'
 import { getTagPage, createTag, updateTag, deleteTag as deleteTagApi, getCategoryList } from '@/api/article'
 import dayjs from 'dayjs'
 
@@ -103,6 +144,11 @@ const form = ref({
   id: null,
   name: '',
   categoryId: null
+})
+
+const searchForm = reactive({
+  name: '',
+  categoryId: undefined
 })
 
 const pagination = reactive({
@@ -228,13 +274,34 @@ const handleTableChange = (pag) => {
   loadTags()
 }
 
+const handleSearch = () => {
+  pagination.current = 1
+  loadTags()
+}
+
+const handleReset = () => {
+  searchForm.name = ''
+  searchForm.categoryId = undefined
+  handleSearch()
+}
+
 const loadTags = async () => {
   loading.value = true
   try {
-    const res = await getTagPage({
+    const params = {
       page: pagination.current,
       size: pagination.pageSize
-    })
+    }
+    
+    // 添加搜索条件
+    if (searchForm.name) {
+      params.name = searchForm.name
+    }
+    if (searchForm.categoryId) {
+      params.categoryId = searchForm.categoryId
+    }
+    
+    const res = await getTagPage(params)
     tags.value = res.data.records || []
     pagination.total = res.data.total || 0
   } catch (error) {
@@ -258,6 +325,7 @@ const loadCategories = async () => {
 
 onMounted(() => {
   loadTags()
+  loadCategories()
 })
 </script>
 
@@ -267,6 +335,10 @@ onMounted(() => {
     display: flex;
     justify-content: space-between;
     align-items: center;
+  }
+  
+  .search-form {
+    margin-bottom: 16px;
   }
 }
 </style>

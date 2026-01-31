@@ -4,7 +4,7 @@
     
     <div class="guestbook-container">
       <!-- 背景图片 -->
-      <div class="background-image"></div>
+      <div class="background-image" :style="{ backgroundImage: `url(${randomBackground})` }"></div>
       
       <!-- 弹幕容器 -->
       <vue3-danmaku
@@ -72,12 +72,18 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { createMessage, getMessageList } from '@/api/message'
 import { ElMessage } from 'element-plus'
 import Header from '@/components/Header.vue'
 import Vue3Danmaku from 'vue3-danmaku'
+
+// 导入背景图片
+import bg1 from '@/assets/images/bg1.png'
+import bg2 from '@/assets/images/bg2.png'
+import bg3 from '@/assets/images/bg3.png'
+import bg4 from '@/assets/images/bg4.png'
 
 const userStore = useUserStore()
 const messageContent = ref('')
@@ -87,6 +93,15 @@ const danmakuRef = ref(null)
 const statusMessage = ref('')
 const showStatus = ref(false)
 let loadInterval = null
+
+// 背景图片数组
+const backgroundImages = [bg1, bg2, bg3, bg4]
+
+// 随机选择一张背景图片
+const randomBackground = computed(() => {
+  const randomIndex = Math.floor(Math.random() * backgroundImages.length)
+  return backgroundImages[randomIndex]
+})
 
 const submitMessage = async () => {
   if (!messageContent.value.trim()) {
@@ -180,7 +195,9 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: url('https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1920') center/cover;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
   filter: brightness(0.8);
   z-index: 0;
   

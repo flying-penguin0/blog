@@ -1,9 +1,46 @@
 <template>
   <div class="user-comments">
-    <a-card :bordered="false">
-      <template #title>
-        <span>我的评论</span>
-      </template>
+    <a-card :bordered="false" title="我的评论">
+      <!-- 搜索栏 -->
+      <a-form layout="inline" :model="searchForm" class="search-form">
+        <a-form-item label="内容">
+          <a-input
+            v-model:value="searchForm.content"
+            placeholder="请输入评论内容"
+            allow-clear
+            style="width: 200px"
+          />
+        </a-form-item>
+        <a-form-item label="状态">
+          <a-select
+            v-model:value="searchForm.status"
+            placeholder="请选择状态"
+            allow-clear
+            style="width: 150px"
+          >
+            <a-select-option value="">全部</a-select-option>
+            <a-select-option value="approved">已通过</a-select-option>
+            <a-select-option value="pending">待审核</a-select-option>
+            <a-select-option value="rejected">已拒绝</a-select-option>
+          </a-select>
+        </a-form-item>
+        <a-form-item>
+          <a-space>
+            <a-button type="primary" @click="handleSearch">
+              <template #icon>
+                <SearchOutlined />
+              </template>
+              搜索
+            </a-button>
+            <a-button @click="handleReset">
+              <template #icon>
+                <ReloadOutlined />
+              </template>
+              重置
+            </a-button>
+          </a-space>
+        </a-form-item>
+      </a-form>
 
       <!-- 评论列表 -->
       <a-table
@@ -21,54 +58,42 @@
           <template v-else-if="column.key === 'articleTitle'">
             <a @click="viewArticle(record.articleId)">{{ record.articleTitle }}</a>
           </template>
+          <template v-else-if="column.key === 'parentContent'">
+            <a-tooltip v-if="record.parentContent" :title="record.parentContent">
+              <div class="content-cell">
+                {{ record.parentContent }}
+              </div>
+            </a-tooltip>
+            <span v-else>无</span>
+          </template>
           <template v-else-if="column.key === 'content'">
             <a-tooltip :title="record.content">
               <div class="content-cell">{{ record.content }}</div>
             </a-tooltip>
           </template>
+          <template v-else-if="column.key === 'status'">
+            <a-tag v-if="record.status === 'approved'" color="green">已通过</a-tag>
+            <a-tag v-else-if="record.status === 'pending'" color="orange">待审核</a-tag>
+            <a-tag v-else-if="record.status === 'rejected'" color="red">已拒绝</a-tag>
+          </template>
           <template v-else-if="column.key === 'createTime'">
             {{ formatDate(record.createTime) }}
           </template>
           <template v-else-if="column.key === 'action'">
-            <a-space>
-              <a-button type="link" size="small" @click="replyComment(record)">
-                回复
+            <a-popconfirm
+              title="确定要删除这条评论吗？"
+              ok-text="确定"
+              cancel-text="取消"
+              @confirm="deleteComment(record)"
+            >
+              <a-button type="link" danger size="small">
+                删除
               </a-button>
-              <a-popconfirm
-                title="确定要删除这条评论吗？"
-                ok-text="确定"
-                cancel-text="取消"
-                @confirm="deleteComment(record)"
-              >
-                <a-button type="link" danger size="small">
-                  删除
-                </a-button>
-              </a-popconfirm>
-            </a-space>
+            </a-popconfirm>
           </template>
         </template>
       </a-table>
     </a-card>
-
-    <!-- 回复对话框 -->
-    <a-modal
-      v-model:open="showReplyDialog"
-      title="回复评论"
-      @ok="submitReply"
-      :confirmLoading="replying"
-    >
-      <div class="reply-info">
-        <p><strong>评论者：</strong>{{ currentComment?.nickname }}</p>
-        <p><strong>评论内容：</strong>{{ currentComment?.content }}</p>
-      </div>
-      <a-textarea
-        v-model:value="replyContent"
-        :rows="4"
-        placeholder="请输入回复内容..."
-        :maxlength="500"
-        show-count
-      />
-    </a-modal>
   </div>
 </template>
 
@@ -77,18 +102,19 @@ import { ref, onMounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { message } from 'ant-design-vue'
-import { getCommentList, createComment, deleteComment as deleteCommentAPI } from '@/api/comment'
+import { SearchOutlined, ReloadOutlined } from '@ant-design/icons-vue'
+import { getCommentList, deleteComment as deleteCommentAPI } from '@/api/comment'
 import dayjs from 'dayjs'
 
 const router = useRouter()
 const userStore = useUserStore()
 
 const loading = ref(false)
-const replying = ref(false)
 const comments = ref([])
-const showReplyDialog = ref(false)
-const currentComment = ref(null)
-const replyContent = ref('')
+const searchForm = reactive({
+  content: '',
+  status: ''
+})
 
 const pagination = reactive({
   current: 1,
@@ -104,37 +130,49 @@ const columns = [
   {
     title: '编号',
     key: 'index',
-    align: 'center'
+    align: 'center',
+    width: 80
   },
   {
     title: '文章标题',
     key: 'articleTitle',
     dataIndex: 'articleTitle',
     ellipsis: true,
-    align: 'center'
+    align: 'center',
+    width: 150
   },
   {
-    title: '评论者',
-    dataIndex: 'nickname',
-    key: 'nickname',
-    align: 'center'
+    title: '父评论',
+    key: 'parentContent',
+    ellipsis: true,
+    align: 'center',
+    width: 200
   },
   {
-    title: '评论内容',
+    title: '当前评论',
     key: 'content',
     dataIndex: 'content',
     ellipsis: true,
-    align: 'center'
+    align: 'center',
+    width: 200
+  },
+  {
+    title: '评论状态',
+    key: 'status',
+    align: 'center',
+    width: 100
   },
   {
     title: '评论时间',
     key: 'createTime',
-    align: 'center'
+    align: 'center',
+    width: 150
   },
   {
     title: '操作',
     key: 'action',
-    align: 'center'
+    align: 'center',
+    width: 100
   }
 ]
 
@@ -144,36 +182,6 @@ const formatDate = (date) => {
 
 const viewArticle = (articleId) => {
   router.push(`/article/${articleId}`)
-}
-
-const replyComment = (comment) => {
-  currentComment.value = comment
-  replyContent.value = ''
-  showReplyDialog.value = true
-}
-
-const submitReply = async () => {
-  if (!replyContent.value.trim()) {
-    message.warning('请输入回复内容')
-    return
-  }
-
-  replying.value = true
-  try {
-    await createComment({
-      articleId: currentComment.value.articleId,
-      content: replyContent.value,
-      parentId: currentComment.value.id
-    })
-    message.success('回复成功')
-    showReplyDialog.value = false
-    loadComments()
-  } catch (error) {
-    console.error('回复失败:', error)
-    message.error('回复失败，请重试')
-  } finally {
-    replying.value = false
-  }
 }
 
 const deleteComment = async (comment) => {
@@ -199,7 +207,9 @@ const loadComments = async () => {
     const res = await getCommentList({
       page: pagination.current,
       size: pagination.pageSize,
-      userId: userStore.user.id
+      userId: userStore.user.id,
+      content: searchForm.content,
+      status: searchForm.status
     })
     comments.value = res.data.records || []
     pagination.total = res.data.total || 0
@@ -211,6 +221,18 @@ const loadComments = async () => {
   }
 }
 
+const handleSearch = () => {
+  pagination.current = 1
+  loadComments()
+}
+
+const handleReset = () => {
+  searchForm.content = ''
+  searchForm.status = ''
+  pagination.current = 1
+  loadComments()
+}
+
 onMounted(() => {
   loadComments()
 })
@@ -218,23 +240,14 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .user-comments {
+  .search-form {
+    margin-bottom: 16px;
+  }
+  
   .content-cell {
-    max-width: 300px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-  }
-  
-  .reply-info {
-    margin-bottom: 15px;
-    padding: 15px;
-    background: #f5f7fa;
-    border-radius: 4px;
-    
-    p {
-      margin: 5px 0;
-      color: #606266;
-    }
   }
 }
 </style>

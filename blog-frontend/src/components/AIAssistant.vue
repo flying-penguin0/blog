@@ -319,7 +319,8 @@ watch(activeTab, () => {
 
 <style scoped lang="scss">
 .ai-assistant {
-  height: 1060px;
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   background: #fff;
@@ -332,19 +333,20 @@ watch(activeTab, () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
+  padding: 14px 16px;
   border-bottom: 1px solid #e4e7ed;
   background: #409eff;
   flex-shrink: 0;
   
   .ai-title {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
     color: #fff;
   }
   
   .close-btn {
     color: #fff;
+    font-size: 18px;
     
     &:hover {
       color: #f0f0f0;
@@ -367,22 +369,23 @@ watch(activeTab, () => {
   
   :deep(.el-tabs__header) {
     margin: 0;
-    padding: 0 20px;
+    padding: 0 16px;
     background: #f5f7fa;
     flex-shrink: 0;
   }
   
   :deep(.el-tabs__nav-wrap) {
-    padding: 10px 0;
+    padding: 8px 0;
   }
   
   :deep(.el-tabs__item) {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 500;
     color: #606266;
     flex: 1;
     text-align: center;
     justify-content: center;
+    padding: 0 12px;
     
     &.is-active {
       color: #409eff;
@@ -422,18 +425,18 @@ watch(activeTab, () => {
   
   .input-textarea {
     :deep(.el-textarea__inner) {
-      font-size: 14px;
+      font-size: 13px;
       line-height: 1.6;
-      border-radius: 8px;
+      border-radius: 6px;
       border: 2px solid #e4e7ed;
       transition: all 0.3s;
       resize: vertical;
-      min-height: 100px;
-      max-height: 200px;
+      min-height: 80px;
+      max-height: 180px;
       
       &:focus {
         border-color: #409eff;
-        box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.1);
+        box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.1);
       }
     }
   }
@@ -441,26 +444,31 @@ watch(activeTab, () => {
 
 .tip-alert {
   margin-bottom: 10px;
-  border-radius: 8px;
+  border-radius: 6px;
   flex-shrink: 0;
   
+  :deep(.el-alert__content) {
+    padding: 0;
+  }
+  
   .tip-text {
-    font-size: 13px;
+    font-size: 12px;
     color: #606266;
+    line-height: 1.5;
   }
 }
 
 .action-btn {
   width: 100%;
-  height: 38px;
-  font-size: 14px;
+  height: 36px;
+  font-size: 13px;
   font-weight: 500;
-  border-radius: 8px;
+  border-radius: 6px;
   margin-bottom: 10px;
   flex-shrink: 0;
   
   .el-icon {
-    margin-right: 6px;
+    margin-right: 4px;
   }
 }
 
@@ -469,7 +477,7 @@ watch(activeTab, () => {
   display: flex;
   flex-direction: column;
   border: 1px solid #e4e7ed;
-  border-radius: 8px;
+  border-radius: 6px;
   overflow: hidden;
   background: #fff;
   min-height: 0;
@@ -478,21 +486,27 @@ watch(activeTab, () => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 12px;
+    padding: 8px 12px;
     background: linear-gradient(135deg, #f5f7fa 0%, #e8eaf0 100%);
     border-bottom: 1px solid #e4e7ed;
     flex-shrink: 0;
     
     .result-title {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
       color: #303133;
+    }
+    
+    :deep(.el-button) {
+      height: 28px;
+      padding: 0 12px;
+      font-size: 12px;
     }
   }
   
   .result-body {
     flex: 1;
-    padding: 10px;
+    padding: 12px;
     overflow-y: auto;
     background: #fff;
     min-height: 0;
@@ -503,7 +517,7 @@ watch(activeTab, () => {
       justify-content: center;
       height: 100%;
       color: #909399;
-      font-size: 14px;
+      font-size: 13px;
     }
     
     .generating-tip {
@@ -515,13 +529,13 @@ watch(activeTab, () => {
       color: #909399;
       
       .el-icon {
-        font-size: 32px;
-        margin-bottom: 12px;
+        font-size: 28px;
+        margin-bottom: 10px;
         color: #409eff;
       }
       
       span {
-        font-size: 14px;
+        font-size: 13px;
       }
     }
     
@@ -532,13 +546,13 @@ watch(activeTab, () => {
     
     :deep(.md-editor-preview) {
       color: #303133;
-      font-size: 14px;
-      line-height: 1.8;
+      font-size: 13px;
+      line-height: 1.7;
       
       h1 {
-        font-size: 28px;
-        margin-top: 1.5em;
-        margin-bottom: 0.8em;
+        font-size: 22px;
+        margin-top: 1.2em;
+        margin-bottom: 0.6em;
         font-weight: 600;
         color: #1f2937;
         border-bottom: 2px solid #e5e7eb;
@@ -546,9 +560,9 @@ watch(activeTab, () => {
       }
       
       h2 {
-        font-size: 24px;
-        margin-top: 1.5em;
-        margin-bottom: 0.8em;
+        font-size: 19px;
+        margin-top: 1.2em;
+        margin-bottom: 0.6em;
         font-weight: 600;
         color: #1f2937;
         border-bottom: 1px solid #e5e7eb;
@@ -556,39 +570,39 @@ watch(activeTab, () => {
       }
       
       h3 {
-        font-size: 20px;
-        margin-top: 1.5em;
-        margin-bottom: 0.8em;
+        font-size: 16px;
+        margin-top: 1.2em;
+        margin-bottom: 0.6em;
         font-weight: 600;
         color: #1f2937;
       }
       
       h4, h5, h6 {
-        font-size: 16px;
-        margin-top: 1.5em;
-        margin-bottom: 0.8em;
+        font-size: 14px;
+        margin-top: 1.2em;
+        margin-bottom: 0.6em;
         font-weight: 600;
         color: #1f2937;
       }
       
       p {
-        margin-bottom: 1em;
-        line-height: 1.8;
+        margin-bottom: 0.8em;
+        line-height: 1.7;
       }
       
       ul, ol {
-        margin: 1em 0;
-        padding-left: 2em;
+        margin: 0.8em 0;
+        padding-left: 1.8em;
         
         li {
-          margin: 0.5em 0;
+          margin: 0.4em 0;
         }
       }
       
       code {
         background: #f3f4f6;
-        padding: 2px 6px;
-        border-radius: 4px;
+        padding: 2px 5px;
+        border-radius: 3px;
         font-size: 0.9em;
         font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
         color: #e83e8c;
@@ -596,37 +610,38 @@ watch(activeTab, () => {
       
       pre {
         background: #1f2937;
-        border-radius: 8px;
-        padding: 16px;
-        margin: 1em 0;
+        border-radius: 6px;
+        padding: 12px;
+        margin: 0.8em 0;
         overflow-x: auto;
         
         code {
           background: transparent;
           padding: 0;
           color: #e5e7eb;
-          font-size: 14px;
+          font-size: 12px;
         }
       }
       
       blockquote {
-        border-left: 4px solid #409eff;
-        padding-left: 1em;
-        margin: 1em 0;
+        border-left: 3px solid #409eff;
+        padding-left: 0.8em;
+        margin: 0.8em 0;
         color: #606266;
         background: #f5f7fa;
-        padding: 0.5em 1em;
-        border-radius: 4px;
+        padding: 0.4em 0.8em;
+        border-radius: 3px;
       }
       
       table {
         border-collapse: collapse;
         width: 100%;
-        margin: 1em 0;
+        margin: 0.8em 0;
+        font-size: 12px;
         
         th, td {
           border: 1px solid #dcdfe6;
-          padding: 8px 12px;
+          padding: 6px 10px;
           text-align: left;
         }
         
@@ -649,13 +664,13 @@ watch(activeTab, () => {
         max-width: 100%;
         height: auto;
         border-radius: 4px;
-        margin: 1em 0;
+        margin: 0.8em 0;
       }
       
       hr {
         border: none;
         border-top: 2px solid #e5e7eb;
-        margin: 2em 0;
+        margin: 1.5em 0;
       }
     }
   }

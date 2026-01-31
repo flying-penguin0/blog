@@ -67,6 +67,12 @@
           </template>
           <span>留言管理</span>
         </a-menu-item>
+        <a-menu-item key="/admin/chatroom">
+          <template #icon>
+            <CommentOutlined />
+          </template>
+          <span>聊天室管理</span>
+        </a-menu-item>
       </a-menu>
     </a-layout-sider>
 
@@ -353,7 +359,7 @@ const saveProfile = async () => {
     showProfileDialog.value = false
   } catch (error) {
     console.error('更新失败:', error)
-    message.error('更新失败，请重试')
+    // 错误已经在拦截器中显示，这里不需要再次显示
   } finally {
     savingProfile.value = false
   }
@@ -503,7 +509,7 @@ const changePassword = async () => {
         align-items: center;
         gap: 12px;
         cursor: pointer;
-        padding: 8px 16px;
+        padding: 0px 16px;
         border-radius: 20px;
         transition: all 0.3s;
         

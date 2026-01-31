@@ -6,7 +6,7 @@
   >
     <div class="container" :style="transparent ? 'background: transparent !important;' : ''">
       <div class="header-content" :style="transparent ? 'background: transparent !important;' : ''">
-        <h1 class="logo" @click="$router.push('/')">Ruyu-博客</h1>
+        <!-- <h1 class="logo" @click="$router.push('/')">基于DeepSeek开放平台的个人知识博客</h1> -->
         <nav class="nav">
           <router-link to="/" class="nav-item" :class="{ active: $route.path === '/' }">
             <el-icon><HomeFilled /></el-icon>
@@ -20,18 +20,18 @@
             <el-icon><PriceTag /></el-icon>
             <span>标签</span>
           </router-link>
-          <a href="#" class="nav-item">
-            <el-icon><Calendar /></el-icon>
-            <span>归档</span>
-          </a>
-          <router-link to="/guestbook" class="nav-item" :class="{ active: $route.path === '/guestbook' }">
+          <router-link to="/chatroom" class="nav-item" :class="{ active: $route.path === '/chatroom' }">
             <el-icon><ChatDotRound /></el-icon>
+            <span>聊天室</span>
+          </router-link>
+          <router-link to="/guestbook" class="nav-item" :class="{ active: $route.path === '/guestbook' }">
+            <el-icon><Message /></el-icon>
             <span>留言板</span>
           </router-link>
-          <a href="#" class="nav-item">
+          <router-link to="/about" class="nav-item" :class="{ active: $route.path === '/about' }">
             <el-icon><User /></el-icon>
             <span>关于</span>
-          </a>
+          </router-link>
         </nav>
         <div class="header-actions">
           <template v-if="userStore.token">
@@ -48,7 +48,7 @@
             </el-dropdown>
           </template>
           <template v-else>
-            <el-button type="primary" size="small" @click="$router.push('/login')">登录</el-button>
+            <el-button type="primary" size="small" @click="$router.push('/login')">登录/注册</el-button>
           </template>
         </div>
       </div>
@@ -65,7 +65,8 @@ import {
   Calendar, 
   FolderOpened, 
   PriceTag, 
-  ChatDotRound, 
+  ChatDotRound,
+  Message,
   User
 } from '@element-plus/icons-vue'
 
@@ -98,7 +99,7 @@ const handleLogout = () => {
 .header {
   position: sticky;
   top: 0;
-  z-index: 9999;
+  z-index: 1000;
   background: #ffffff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: all 0.3s;

@@ -652,6 +652,8 @@ onBeforeUnmount(() => {
   gap: 20px;
   padding: 0 20px;
   align-items: flex-start;
+  max-width: 1800px;
+  margin: 0 auto;
 }
 
 .editor-main {
@@ -659,6 +661,8 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  min-width: 0; // 防止flex子元素溢出
+  transition: all 0.3s ease;
 }
 
 .info-card {
@@ -746,15 +750,18 @@ onBeforeUnmount(() => {
 .ai-panel {
   width: 0;
   overflow: hidden;
-  transition: width 0.3s ease;
+  transition: all 0.3s ease;
   flex-shrink: 0;
+  opacity: 0;
   
   &.open {
-    width: 420px;
+    width: 400px;
+    opacity: 1;
   }
   
   .ai-assistant-wrapper {
     height: 1060px;
+    width: 400px;
   }
 }
 

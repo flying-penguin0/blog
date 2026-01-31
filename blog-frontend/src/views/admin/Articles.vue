@@ -178,12 +178,6 @@ const columns = [
     align: 'center'
   },
   {
-    title: '分类',
-    dataIndex: 'categoryName',
-    key: 'categoryName',
-    align: 'center'
-  },
-  {
     title: '浏览量',
     dataIndex: 'viewCount',
     key: 'viewCount',

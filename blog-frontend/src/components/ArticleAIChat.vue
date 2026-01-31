@@ -6,7 +6,9 @@
       class="ai-float-button" 
       @click="showDialog = true"
     >
-      <div class="button-icon">🤖</div>
+      <div class="button-icon">
+        <img src="@/assets/images/dp.png" alt="AI" class="deepseek-icon" />
+      </div>
       <div class="button-text">AI助手</div>
     </div>
 
@@ -14,6 +16,7 @@
     <el-dialog
       v-model="showDialog"
       width="650px"
+      top="1vh"
       :close-on-click-modal="false"
       :append-to-body="true"
       :z-index="10000"
@@ -250,9 +253,9 @@ const scrollToBottom = () => {
   bottom: 30px;
   width: 70px;
   height: 70px;
-  background: linear-gradient(135deg, #409eff 0%, #66b1ff 100%);
+  background: white;
   border-radius: 50%;
-  box-shadow: 0 8px 24px rgba(64, 158, 255, 0.4);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   cursor: pointer;
   display: flex;
   flex-direction: column;
@@ -265,17 +268,26 @@ const scrollToBottom = () => {
   .button-icon {
     font-size: 28px;
     line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    .deepseek-icon {
+      width: 36px;
+      height: 36px;
+      object-fit: contain;
+    }
   }
   
   .button-text {
     font-size: 11px;
-    color: #fff;
+    color: #409eff;
     font-weight: 500;
   }
   
   &:hover {
     transform: scale(1.1) rotate(5deg);
-    box-shadow: 0 12px 32px rgba(64, 158, 255, 0.5);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
   }
   
   &:active {
@@ -314,6 +326,20 @@ const scrollToBottom = () => {
     .header-icon {
       font-size: 32px;
       line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      
+      .deepseek-icon-header {
+        width: 32px;
+        height: 32px;
+        object-fit: contain;
+        filter: brightness(0) invert(1);
+      }
     }
     
     .header-info {

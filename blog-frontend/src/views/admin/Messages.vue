@@ -1,25 +1,49 @@
 <template>
   <div class="messages-management">
-    <a-card title="留言管理" :bordered="false">
-      <template #extra>
-        <a-space>
+    <a-card :bordered="false">
+      <template #title>
+        <span>留言管理</span>
+      </template>
+
+      <!-- 搜索栏 -->
+      <a-form layout="inline" :model="searchForm" class="search-form">
+        <a-form-item label="内容">
+          <a-input
+            v-model:value="searchForm.content"
+            placeholder="请输入留言内容"
+            allow-clear
+            style="width: 200px"
+          />
+        </a-form-item>
+        <a-form-item label="状态">
           <a-select
-            v-model:value="searchStatus"
-            placeholder="留言状态"
+            v-model:value="searchForm.status"
+            placeholder="请选择状态"
+            allow-clear
             style="width: 120px"
-            @change="handleSearch"
-            allowClear
           >
-            <a-select-option value="approved">已通过</a-select-option>
             <a-select-option value="pending">待审核</a-select-option>
+            <a-select-option value="approved">已通过</a-select-option>
             <a-select-option value="rejected">已拒绝</a-select-option>
           </a-select>
-          <a-button type="primary" @click="handleSearch">
-            <template #icon><SearchOutlined /></template>
-            搜索
-          </a-button>
-        </a-space>
-      </template>
+        </a-form-item>
+        <a-form-item>
+          <a-space>
+            <a-button type="primary" @click="handleSearch">
+              <template #icon>
+                <SearchOutlined />
+              </template>
+              搜索
+            </a-button>
+            <a-button @click="handleReset">
+              <template #icon>
+                <ReloadOutlined />
+              </template>
+              重置
+            </a-button>
+          </a-space>
+        </a-form-item>
+      </a-form>
 
       <a-table
         :columns="columns"
@@ -93,15 +117,18 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, reactive } from 'vue'
 import { message } from 'ant-design-vue'
-import { SearchOutlined } from '@ant-design/icons-vue'
+import { SearchOutlined, ReloadOutlined } from '@ant-design/icons-vue'
 import { getMessageList, deleteMessage, auditMessage } from '@/api/message'
 import dayjs from 'dayjs'
 
 const loading = ref(false)
 const messages = ref([])
-const searchStatus = ref(undefined)
+const searchForm = reactive({
+  content: '',
+  status: undefined
+})
 
 const pagination = ref({
   current: 1,
@@ -156,7 +183,8 @@ const loadMessages = async () => {
     const res = await getMessageList({
       page: pagination.value.current,
       size: pagination.value.pageSize,
-      status: searchStatus.value
+      status: searchForm.status,
+      content: searchForm.content
     })
     messages.value = res.data.records || []
     pagination.value.total = res.data.total || 0
@@ -171,6 +199,12 @@ const loadMessages = async () => {
 const handleSearch = () => {
   pagination.value.current = 1
   loadMessages()
+}
+
+const handleReset = () => {
+  searchForm.content = ''
+  searchForm.status = undefined
+  handleSearch()
 }
 
 const handleTableChange = (pag) => {
@@ -208,6 +242,10 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .messages-management {
+  .search-form {
+    margin-bottom: 16px;
+  }
+  
   .content-cell {
     max-width: 400px;
     word-break: break-word;

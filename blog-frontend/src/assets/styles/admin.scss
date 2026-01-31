@@ -499,3 +499,61 @@
     transform: rotate(360deg);
   }
 }
+
+// Ant Design 表格字体大小优化
+.ant-table {
+  font-size: 13px;
+  
+  .ant-table-thead > tr > th {
+    font-size: 13px;
+    font-weight: 600;
+    padding: 12px 16px;
+  }
+  
+  .ant-table-tbody > tr > td {
+    font-size: 13px;
+    padding: 10px 16px;
+  }
+  
+  // 操作按钮字体
+  .ant-btn-link {
+    font-size: 13px;
+  }
+  
+  // 标签字体
+  .ant-tag {
+    font-size: 12px;
+  }
+  
+  // 开关组件
+  .ant-switch {
+    font-size: 12px;
+  }
+}
+
+// 搜索表单字体
+.ant-form {
+  .ant-form-item-label > label {
+    font-size: 13px;
+  }
+  
+  .ant-input,
+  .ant-select-selector {
+    font-size: 13px;
+  }
+  
+  .ant-btn {
+    font-size: 13px;
+  }
+}
+
+// 分页字体
+.ant-pagination {
+  font-size: 13px;
+  
+  .ant-pagination-item,
+  .ant-pagination-prev,
+  .ant-pagination-next {
+    font-size: 13px;
+  }
+}

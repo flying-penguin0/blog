@@ -234,7 +234,28 @@ const handleScroll = () => {
     }
   })
   
-  activeHeading.value = currentHeading
+  if (currentHeading !== activeHeading.value) {
+    activeHeading.value = currentHeading
+    
+    // 自动滚动目录到当前激活项
+    nextTick(() => {
+      const tocContent = document.querySelector('.toc-content')
+      const activeItem = document.querySelector('.toc-item.active')
+      
+      if (tocContent && activeItem) {
+        const tocRect = tocContent.getBoundingClientRect()
+        const itemRect = activeItem.getBoundingClientRect()
+        
+        // 计算需要滚动的距离，让激活项居中显示
+        const scrollOffset = activeItem.offsetTop - tocContent.offsetTop - (tocContent.clientHeight / 2) + (activeItem.clientHeight / 2)
+        
+        tocContent.scrollTo({
+          top: scrollOffset,
+          behavior: 'smooth'
+        })
+      }
+    })
+  }
 }
 
 const fetchArticle = async () => {
@@ -248,10 +269,8 @@ const fetchArticle = async () => {
       try {
         const statsRes = await getUserStats(article.value.userId)
         authorStats.value = statsRes.data
-        // 设置作者签名
-        if (statsRes.data.signature) {
-          authorSignature.value = statsRes.data.signature
-        }
+        // 设置作者签名，如果没有则使用默认值
+        authorSignature.value = statsRes.data.signature || '生活总要活埋了我，不料我是一粒种子'
       } catch (error) {
         console.error('获取作者统计失败:', error)
         // 使用默认值
@@ -511,7 +530,7 @@ onUnmounted(() => {
     }
     
     .toc-content {
-      max-height: 260px;
+      max-height: 200px;
       overflow-y: auto;
       margin-bottom: 16px;
       

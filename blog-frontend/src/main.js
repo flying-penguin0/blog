@@ -24,7 +24,10 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 const pinia = createPinia()
 app.use(pinia)
 app.use(router)
-app.use(ElementPlus)
+app.use(ElementPlus, {
+  // 配置消息组件的 z-index，确保在导航栏之上
+  zIndex: 3000
+})
 app.use(Antd)
 app.use(Vue3Danmaku)
 
