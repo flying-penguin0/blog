@@ -124,10 +124,12 @@ public class CommentController {
     public Result<PageResult<CommentVO>> getAllComments(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String status,
+            @RequestParam(required = false) String content,
+            @RequestParam(required = false) String articleTitle,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(required = false) Long userId) {
-        PageResult<CommentVO> result = commentService.getAllComments(keyword, status, page, size, userId);
+        PageResult<CommentVO> result = commentService.getAllComments(keyword, status, content, articleTitle, page, size, userId);
         return Result.success(result);
     }
 }

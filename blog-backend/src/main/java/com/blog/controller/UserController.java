@@ -120,8 +120,9 @@ public class UserController {
      */
     @Operation(summary = "切换用户状态")
     @PutMapping("/{id}/status")
-    public Result<Void> toggleUserStatus(@PathVariable Long id) {
-        userService.toggleUserStatus(id);
+    public Result<Void> toggleUserStatus(@PathVariable Long id, HttpServletRequest request) {
+        Long currentUserId = (Long) request.getAttribute("userId");
+        userService.toggleUserStatus(id, currentUserId);
         return Result.success("操作成功", null);
     }
     

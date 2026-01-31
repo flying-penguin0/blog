@@ -34,6 +34,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .excludePathPatterns(
                         "/user/login",
                         "/user/register",
+                        "/api/captcha",  // 验证码接口
                         "/article/list",
                         "/article/hot",
                         "/category/**",
@@ -41,8 +42,14 @@ public class WebConfig implements WebMvcConfigurer {
                         "/comment/article/**",
                         "/message",
                         "/announcement/latest",  // 只排除前台获取最新公告的接口
+                        "/chatroom/history",  // 聊天室历史消息
+                        "/ws/**",  // WebSocket连接
+                        "/swagger-ui.html",
                         "/swagger-ui/**",
+                        "/v3/api-docs",
                         "/v3/api-docs/**",
+                        "/swagger-resources/**",
+                        "/webjars/**",
                         "/druid/**",
                         "/error"
                 )

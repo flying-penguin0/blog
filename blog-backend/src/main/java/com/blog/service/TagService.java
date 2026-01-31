@@ -22,7 +22,7 @@ public interface TagService extends IService<Tag> {
     /**
      * 分页查询标签
      */
-    PageResult<TagVO> getTagPage(Integer page, Integer size);
+    PageResult<TagVO> getTagPage(Integer page, Integer size, String name, Long categoryId);
     
     /**
      * 创建标签

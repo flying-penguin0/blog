@@ -55,8 +55,10 @@ public class StatisticsServiceImpl implements StatisticsService {
         // 统计文章总数
         vo.setArticleCount(articleMapper.selectCount(null));
         
-        // 统计评论总数
-        vo.setCommentCount(commentMapper.selectCount(null));
+        // 统计评论总数（只统计已审核通过的）
+        LambdaQueryWrapper<com.blog.entity.Comment> commentWrapper = new LambdaQueryWrapper<>();
+        commentWrapper.eq(com.blog.entity.Comment::getStatus, "approved");
+        vo.setCommentCount(commentMapper.selectCount(commentWrapper));
         
         // 统计总浏览量
         LambdaQueryWrapper<Article> articleWrapper = new LambdaQueryWrapper<>();

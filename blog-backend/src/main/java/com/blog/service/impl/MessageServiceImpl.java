@@ -96,4 +96,38 @@ public class MessageServiceImpl implements MessageService {
         message.setStatus(status);
         messageMapper.updateById(message);
     }
+    
+    @Override
+    public PageResult<Message> getMyMessages(Long userId, Integer page, Integer size, String content, String status) {
+        Page<Message> pageParam = new Page<>(page, size);
+        LambdaQueryWrapper<Message> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Message::getUserId, userId);
+        
+        // 添加搜索条件
+        if (content != null && !content.trim().isEmpty()) {
+            wrapper.like(Message::getContent, content);
+        }
+        if (status != null && !status.trim().isEmpty()) {
+            wrapper.eq(Message::getStatus, status);
+        }
+        
+        wrapper.orderByDesc(Message::getCreateTime);
+        
+        Page<Message> result = messageMapper.selectPage(pageParam, wrapper);
+        
+        // 填充用户信息
+        List<Message> messages = result.getRecords();
+        if (!messages.isEmpty()) {
+            User user = userMapper.selectById(userId);
+            if (user != null) {
+                messages.forEach(message -> {
+                    message.setUsername(user.getUsername());
+                    message.setNickname(user.getNickname());
+                    message.setAvatar(user.getAvatar());
+                });
+            }
+        }
+        
+        return new PageResult<>(messages, result.getTotal(), page, size);
+    }
 }

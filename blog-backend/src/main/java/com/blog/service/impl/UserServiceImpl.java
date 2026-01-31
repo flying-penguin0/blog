@@ -44,6 +44,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Autowired
     private com.blog.mapper.CommentMapper commentMapper;
     
+    @Autowired
+    private com.blog.utils.CaptchaGenerator captchaGenerator;
+    
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     
     @Override
@@ -56,7 +59,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
         
         // 检查邮箱是否存在
-        if (dto.getEmail() != null) {
+        if (dto.getEmail() != null && !dto.getEmail().trim().isEmpty()) {
             LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
             wrapper.eq(User::getEmail, dto.getEmail());
             if (this.count(wrapper) > 0) {
@@ -64,12 +67,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             }
         }
         
+        // 检查昵称是否存在
+        String nickname = dto.getNickname() != null && !dto.getNickname().trim().isEmpty() 
+                ? dto.getNickname() 
+                : dto.getUsername();
+        User existNickname = getUserByNickname(nickname);
+        if (existNickname != null) {
+            throw new BusinessException(ResultCode.NICKNAME_EXIST);
+        }
+        
         // 创建用户
         User user = new User();
         user.setUsername(dto.getUsername());
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
         user.setEmail(dto.getEmail());
-        user.setNickname(dto.getNickname() != null ? dto.getNickname() : dto.getUsername());
+        user.setNickname(nickname);
         user.setRole("user");
         user.setStatus(1);
         
@@ -78,6 +90,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     
     @Override
     public LoginVO login(LoginDTO dto) {
+        // 验证验证码
+        if (!captchaGenerator.verifyCaptcha(dto.getCaptchaKey(), dto.getCaptchaCode())) {
+            throw new BusinessException(ResultCode.CAPTCHA_ERROR);
+        }
+        
         // 查询用户
         User user = getUserByUsername(dto.getUsername());
         if (user == null) {
@@ -124,7 +141,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
         
         // 只允许更新昵称、邮箱、头像和签名
-        if (userVO.getNickname() != null) {
+        if (userVO.getNickname() != null && !userVO.getNickname().trim().isEmpty()) {
+            // 检查昵称是否被其他用户使用
+            User existNickname = getUserByNickname(userVO.getNickname());
+            if (existNickname != null && !existNickname.getId().equals(userId)) {
+                throw new BusinessException(ResultCode.NICKNAME_EXIST);
+            }
             user.setNickname(userVO.getNickname());
         }
         if (userVO.getEmail() != null) {
@@ -162,6 +184,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public User getUserByUsername(String username) {
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(User::getUsername, username);
+        return this.getOne(wrapper);
+    }
+    
+    @Override
+    public User getUserByNickname(String nickname) {
+        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(User::getNickname, nickname);
         return this.getOne(wrapper);
     }
     
@@ -209,14 +238,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
         
         // 更新用户信息
-        if (userVO.getNickname() != null) {
+        if (userVO.getNickname() != null && !userVO.getNickname().trim().isEmpty()) {
+            // 检查昵称是否被其他用户使用
+            User existNickname = getUserByNickname(userVO.getNickname());
+            if (existNickname != null && !existNickname.getId().equals(id)) {
+                throw new BusinessException(ResultCode.NICKNAME_EXIST);
+            }
             user.setNickname(userVO.getNickname());
         }
         if (userVO.getEmail() != null) {
             user.setEmail(userVO.getEmail());
         }
-        if (userVO.getRole() != null) {
-            user.setRole(userVO.getRole());
+        if (userVO.getSignature() != null) {
+            user.setSignature(userVO.getSignature());
         }
         if (userVO.getAvatar() != null) {
             user.setAvatar(userVO.getAvatar());
@@ -227,15 +261,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void toggleUserStatus(Long id) {
+    public void toggleUserStatus(Long id, Long currentUserId) {
         User user = this.getById(id);
         if (user == null) {
             throw new BusinessException(ResultCode.USER_NOT_FOUND);
         }
         
-        // 不能禁用管理员
-        if ("admin".equals(user.getRole())) {
-            throw new BusinessException(ResultCode.FORBIDDEN);
+        // 不能禁用自己
+        if (id.equals(currentUserId)) {
+            throw new BusinessException(ResultCode.FORBIDDEN.getCode(), "不能禁用自己的账号");
         }
         
         // 切换状态

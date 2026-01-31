@@ -47,6 +47,11 @@ public interface UserService extends IService<User> {
     User getUserByUsername(String username);
     
     /**
+     * 根据昵称查询用户
+     */
+    User getUserByNickname(String nickname);
+    
+    /**
      * 获取所有用户列表（管理员）
      */
     PageResult<UserVO> getAllUsers(String username, String role, Integer page, Integer size);
@@ -59,7 +64,7 @@ public interface UserService extends IService<User> {
     /**
      * 切换用户状态（管理员）
      */
-    void toggleUserStatus(Long id);
+    void toggleUserStatus(Long id, Long currentUserId);
     
     /**
      * 删除用户（管理员）

@@ -19,6 +19,11 @@ public interface MessageService {
     PageResult<Message> getMessageList(Integer page, Integer size, String status);
     
     /**
+     * 获取我的留言列表（分页）
+     */
+    PageResult<Message> getMyMessages(Long userId, Integer page, Integer size, String content, String status);
+    
+    /**
      * 删除留言
      */
     void deleteMessage(Long id);

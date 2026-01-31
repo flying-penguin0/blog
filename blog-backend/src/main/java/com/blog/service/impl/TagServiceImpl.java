@@ -41,9 +41,19 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagSe
     }
     
     @Override
-    public PageResult<TagVO> getTagPage(Integer page, Integer size) {
+    public PageResult<TagVO> getTagPage(Integer page, Integer size, String name, Long categoryId) {
         Page<Tag> pageParam = new Page<>(page, size);
-        Page<Tag> result = this.page(pageParam);
+        LambdaQueryWrapper<Tag> wrapper = new LambdaQueryWrapper<>();
+        
+        // 添加搜索条件
+        if (name != null && !name.trim().isEmpty()) {
+            wrapper.like(Tag::getName, name);
+        }
+        if (categoryId != null) {
+            wrapper.eq(Tag::getCategoryId, categoryId);
+        }
+        
+        Page<Tag> result = this.page(pageParam, wrapper);
         
         List<TagVO> tagVOList = result.getRecords().stream()
                 .map(this::convertToVO)

@@ -270,7 +270,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     }
     
     @Override
-    public PageResult<CommentVO> getAllComments(String keyword, String status, Integer page, Integer size, Long userId) {
+    public PageResult<CommentVO> getAllComments(String keyword, String status, String content, String articleTitle, Integer page, Integer size, Long userId) {
         // 构建查询条件
         LambdaQueryWrapper<Comment> wrapper = new LambdaQueryWrapper<>();
         
@@ -280,9 +280,31 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
             wrapper.eq(Comment::getUserId, userId);
         }
         
-        // 关键词搜索
+        // 关键词搜索（保留向后兼容）
         if (keyword != null && !keyword.trim().isEmpty()) {
             wrapper.like(Comment::getContent, keyword);
+        }
+        
+        // 评论内容搜索
+        if (content != null && !content.trim().isEmpty()) {
+            wrapper.like(Comment::getContent, content);
+        }
+        
+        // 文章标题搜索（需要关联查询）
+        if (articleTitle != null && !articleTitle.trim().isEmpty()) {
+            // 先查询符合标题的文章ID列表
+            LambdaQueryWrapper<Article> articleWrapper = new LambdaQueryWrapper<>();
+            articleWrapper.like(Article::getTitle, articleTitle);
+            List<Article> articles = articleMapper.selectList(articleWrapper);
+            if (!articles.isEmpty()) {
+                List<Long> articleIds = articles.stream()
+                        .map(Article::getId)
+                        .collect(Collectors.toList());
+                wrapper.in(Comment::getArticleId, articleIds);
+            } else {
+                // 如果没有匹配的文章，返回空结果
+                return new PageResult<>(new ArrayList<>(), 0L, page, size);
+            }
         }
         
         // 状态筛选（如果指定了状态）
@@ -320,6 +342,18 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         Article article = articleMapper.selectById(comment.getArticleId());
         if (article != null) {
             vo.setArticleTitle(article.getTitle());
+        }
+        
+        // 查询被评论内容
+        if (comment.getParentId() != null) {
+            // 如果是子评论，显示父评论内容
+            Comment parentComment = this.getById(comment.getParentId());
+            if (parentComment != null) {
+                vo.setParentContent(parentComment.getContent());
+            }
+        } else {
+            // 如果是父评论，设置为 null（前端会显示"无"）
+            vo.setParentContent(null);
         }
         
         return vo;

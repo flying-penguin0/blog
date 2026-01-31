@@ -42,8 +42,10 @@ public class TagController {
     @GetMapping("/page")
     public Result<PageResult<TagVO>> getTagPage(
             @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
-        PageResult<TagVO> result = tagService.getTagPage(page, size);
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) Long categoryId) {
+        PageResult<TagVO> result = tagService.getTagPage(page, size, name, categoryId);
         return Result.success(result);
     }
     

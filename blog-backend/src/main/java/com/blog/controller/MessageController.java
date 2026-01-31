@@ -58,6 +58,27 @@ public class MessageController {
     }
     
     /**
+     * 获取我的留言列表
+     */
+    @Operation(summary = "获取我的留言列表")
+    @GetMapping("/my")
+    public Result<PageResult<Message>> getMyMessages(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) String content,
+            @RequestParam(required = false) String status,
+            HttpServletRequest request
+    ) {
+        String token = request.getHeader("Authorization");
+        if (token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+        Long userId = jwtUtil.getUserIdFromToken(token);
+        PageResult<Message> result = messageService.getMyMessages(userId, page, size, content, status);
+        return Result.success(result);
+    }
+    
+    /**
      * 删除留言
      */
     @Operation(summary = "删除留言")

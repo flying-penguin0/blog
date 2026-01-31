@@ -43,6 +43,11 @@ public class CommentVO {
     private String parentUsername;
     
     /**
+     * 被评论内容（用户后台列表使用）
+     */
+    private String parentContent;
+    
+    /**
      * 文章标题（管理员列表使用）
      */
     private String articleTitle;

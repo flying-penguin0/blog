@@ -54,5 +54,5 @@ public interface CommentService extends IService<Comment> {
     /**
      * 获取所有评论列表（管理员）
      */
-    PageResult<CommentVO> getAllComments(String keyword, String status, Integer page, Integer size, Long userId);
+    PageResult<CommentVO> getAllComments(String keyword, String status, String content, String articleTitle, Integer page, Integer size, Long userId);
 }
