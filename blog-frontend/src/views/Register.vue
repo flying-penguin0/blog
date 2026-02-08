@@ -64,7 +64,7 @@
             <el-form-item prop="username">
               <el-input 
                 v-model="form.username" 
-                placeholder="用户名（3-20个字符）" 
+                placeholder="用户名" 
                 size="large"
                 class="custom-input"
               >
@@ -78,7 +78,7 @@
               <el-input 
                 v-model="form.password" 
                 type="password" 
-                placeholder="密码（6-20个字符）" 
+                placeholder="密码" 
                 size="large"
                 class="custom-input"
               >
@@ -105,7 +105,7 @@
             <el-form-item prop="email">
               <el-input 
                 v-model="form.email" 
-                placeholder="邮箱（选填）" 
+                placeholder="邮箱" 
                 size="large"
                 class="custom-input"
               >
@@ -115,10 +115,38 @@
               </el-input>
             </el-form-item>
             
+            <el-form-item prop="emailCode">
+              <div class="code-input-wrapper">
+                <el-input 
+                  v-model="form.emailCode" 
+                  placeholder="邮箱验证码" 
+                  size="large"
+                  class="custom-input code-input"
+                  maxlength="6"
+                >
+                  <template #prefix>
+                    <el-icon><key /></el-icon>
+                  </template>
+                </el-input>
+                <el-button 
+                  type="primary" 
+                  size="large"
+                  class="send-code-btn"
+                  :disabled="countdown > 0 || !form.username || !form.email || sendingCode"
+                  :loading="sendingCode"
+                  @click="sendEmailCode"
+                >
+                  <span v-if="sendingCode">发送中...</span>
+                  <span v-else-if="countdown > 0">{{ countdown }}秒</span>
+                  <span v-else>发送</span>
+                </el-button>
+              </div>
+            </el-form-item>
+            
             <el-form-item prop="nickname">
               <el-input 
                 v-model="form.nickname" 
-                placeholder="昵称（选填，默认为用户名）" 
+                placeholder="昵称（选填）" 
                 size="large"
                 class="custom-input"
               >
@@ -157,17 +185,23 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
+import { sendEmailCode as sendEmailCodeApi } from '@/api/captcha'
 
 const router = useRouter()
 const userStore = useUserStore()
 
 const formRef = ref(null)
 const loading = ref(false)
+const sendingCode = ref(false)
+const countdown = ref(0)
+let countdownTimer = null
+
 const form = ref({
   username: '',
   password: '',
   confirmPassword: '',
   email: '',
+  emailCode: '',
   nickname: ''
 })
 
@@ -193,11 +227,61 @@ const rules = {
     { validator: validateConfirmPassword, trigger: 'blur' }
   ],
   email: [
+    { required: true, message: '请输入邮箱', trigger: 'blur' },
     { type: 'email', message: '邮箱格式不正确', trigger: 'blur' }
+  ],
+  emailCode: [
+    { required: true, message: '请输入邮箱验证码', trigger: 'blur' },
+    { len: 6, message: '验证码长度必须为6位', trigger: 'blur' }
   ],
   nickname: [
     { min: 2, max: 20, message: '昵称长度必须在2-20之间', trigger: 'blur' }
   ]
+}
+
+// 发送邮箱验证码
+const sendEmailCode = async () => {
+  // 验证用户名
+  if (!form.value.username) {
+    ElMessage.warning('请先输入用户名')
+    return
+  }
+  
+  if (form.value.username.length < 3 || form.value.username.length > 20) {
+    ElMessage.warning('用户名长度必须在3-20之间')
+    return
+  }
+  
+  // 验证邮箱格式
+  if (!form.value.email) {
+    ElMessage.warning('请先输入邮箱')
+    return
+  }
+  
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(form.value.email)) {
+    ElMessage.warning('邮箱格式不正确')
+    return
+  }
+  
+  sendingCode.value = true
+  try {
+    await sendEmailCodeApi(form.value.username, form.value.email)
+    ElMessage.success('验证码已发送，请查收邮件')
+    
+    // 开始倒计时
+    countdown.value = 60
+    countdownTimer = setInterval(() => {
+      countdown.value--
+      if (countdown.value <= 0) {
+        clearInterval(countdownTimer)
+      }
+    }, 1000)
+  } catch (error) {
+    console.error('发送验证码失败:', error)
+  } finally {
+    sendingCode.value = false
+  }
 }
 
 const handleRegister = async () => {
@@ -208,7 +292,8 @@ const handleRegister = async () => {
     await userStore.register({
       username: form.value.username,
       password: form.value.password,
-      email: form.value.email || undefined,
+      email: form.value.email,
+      emailCode: form.value.emailCode,
       nickname: form.value.nickname || undefined
     })
     ElMessage.success('注册成功，请登录')
@@ -465,7 +550,7 @@ const handleRegister = async () => {
 // 右侧表单区域
 .form-section {
   flex: 1;
-  padding: 20px 40px;
+  padding: 30px 40px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -480,7 +565,7 @@ const handleRegister = async () => {
 
 .form-header {
   text-align: center;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
   
   h2 {
     font-size: 24px;
@@ -497,12 +582,12 @@ const handleRegister = async () => {
 
 .register-form {
   :deep(.el-form-item) {
-    margin-bottom: 14px;
+    margin-bottom: 12px;
   }
   
   :deep(.el-input__wrapper) {
-    border-radius: 12px;
-    padding: 10px 14px;
+    border-radius: 10px;
+    padding: 8px 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     transition: all 0.3s;
     
@@ -520,10 +605,37 @@ const handleRegister = async () => {
   }
 }
 
+.code-input-wrapper {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+  width: 100%;
+  
+  .code-input {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .send-code-btn {
+    flex-shrink: 0;
+    width: 90px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 0 8px;
+    height: auto;
+    
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+}
+
 .register-btn {
   width: 100%;
-  height: 44px;
-  border-radius: 12px;
+  height: 42px;
+  border-radius: 10px;
   font-size: 15px;
   font-weight: 600;
   background: #409EFF;
@@ -544,7 +656,7 @@ const handleRegister = async () => {
 
 .form-footer {
   text-align: center;
-  margin-top: 16px;
+  margin-top: 12px;
   color: #666;
   font-size: 13px;
   

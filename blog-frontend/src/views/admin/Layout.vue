@@ -65,7 +65,7 @@
           <template #icon>
             <MessageOutlined />
           </template>
-          <span>留言管理</span>
+          <span>留言板管理</span>
         </a-menu-item>
         <a-menu-item key="/admin/chatroom">
           <template #icon>

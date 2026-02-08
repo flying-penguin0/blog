@@ -1,10 +1,6 @@
 <template>
-  <div class="messages-management">
-    <a-card :bordered="false">
-      <template #title>
-        <span>留言板管理</span>
-      </template>
-
+  <div class="user-messages">
+    <a-card :bordered="false" title="我的留言">
       <!-- 搜索栏 -->
       <a-form layout="inline" :model="searchForm" class="search-form">
         <a-form-item label="内容">
@@ -51,20 +47,10 @@
         :loading="loading"
         :pagination="pagination"
         @change="handleTableChange"
-        :scroll="{ x: 1200 }"
       >
         <template #bodyCell="{ column, record, index }">
           <template v-if="column.key === 'index'">
             {{ (pagination.current - 1) * pagination.pageSize + index + 1 }}
-          </template>
-
-          <template v-else-if="column.key === 'user'">
-            <a-space>
-              <a-avatar :src="record.avatar">
-                {{ record.username?.charAt(0).toUpperCase() }}
-              </a-avatar>
-              <span>{{ record.username }}</span>
-            </a-space>
           </template>
 
           <template v-else-if="column.key === 'content'">
@@ -72,9 +58,9 @@
           </template>
 
           <template v-else-if="column.key === 'status'">
-            <a-tag v-if="record.status === 'approved'" color="success">已通过</a-tag>
-            <a-tag v-else-if="record.status === 'pending'" color="warning">待审核</a-tag>
-            <a-tag v-else-if="record.status === 'rejected'" color="error">已拒绝</a-tag>
+            <a-tag v-if="record.status === 'approved'" color="green">已通过</a-tag>
+            <a-tag v-else-if="record.status === 'pending'" color="orange">待审核</a-tag>
+            <a-tag v-else-if="record.status === 'rejected'" color="red">已拒绝</a-tag>
           </template>
 
           <template v-else-if="column.key === 'createTime'">
@@ -82,33 +68,14 @@
           </template>
 
           <template v-else-if="column.key === 'action'">
-            <a-space>
-              <a-button
-                v-if="record.status !== 'approved'"
-                type="link"
-                size="small"
-                @click="handleAudit(record.id, 'approved')"
-              >
-                通过
-              </a-button>
-              <a-popconfirm
-                title="确定要删除这条留言吗？"
-                ok-text="确定"
-                cancel-text="取消"
-                @confirm="handleDelete(record.id)"
-              >
-                <a-button type="link" danger size="small">删除</a-button>
-              </a-popconfirm>
-              <a-button
-                v-if="record.status !== 'rejected'"
-                type="link"
-                danger
-                size="small"
-                @click="handleAudit(record.id, 'rejected')"
-              >
-                拒绝
-              </a-button>
-            </a-space>
+            <a-popconfirm
+              title="确定要删除这条留言吗？"
+              ok-text="确定"
+              cancel-text="取消"
+              @confirm="handleDelete(record.id)"
+            >
+              <a-button type="link" danger size="small">删除</a-button>
+            </a-popconfirm>
           </template>
         </template>
       </a-table>
@@ -120,7 +87,7 @@
 import { ref, onMounted, reactive } from 'vue'
 import { message } from 'ant-design-vue'
 import { SearchOutlined, ReloadOutlined } from '@ant-design/icons-vue'
-import { getMessageList, deleteMessage, auditMessage } from '@/api/message'
+import { getMyMessages, deleteMessage } from '@/api/message'
 import dayjs from 'dayjs'
 
 const loading = ref(false)
@@ -143,12 +110,8 @@ const columns = [
   {
     title: '编号',
     key: 'index',
-    width: 80
-  },
-  {
-    title: '用户',
-    key: 'user',
-    width: 150
+    width: 80,
+    align: 'center'
   },
   {
     title: '留言内容',
@@ -158,18 +121,21 @@ const columns = [
   {
     title: '状态',
     key: 'status',
-    width: 100
+    width: 100,
+    align: 'center'
   },
   {
     title: '创建时间',
     key: 'createTime',
-    width: 180
+    width: 180,
+    align: 'center'
   },
   {
     title: '操作',
     key: 'action',
     fixed: 'right',
-    width: 200
+    width: 100,
+    align: 'center'
   }
 ]
 
@@ -180,11 +146,11 @@ const formatDate = (date) => {
 const loadMessages = async () => {
   loading.value = true
   try {
-    const res = await getMessageList({
+    const res = await getMyMessages({
       page: pagination.value.current,
       size: pagination.value.pageSize,
-      status: searchForm.status,
-      content: searchForm.content
+      content: searchForm.content,
+      status: searchForm.status
     })
     messages.value = res.data.records || []
     pagination.value.total = res.data.total || 0
@@ -204,7 +170,8 @@ const handleSearch = () => {
 const handleReset = () => {
   searchForm.content = ''
   searchForm.status = undefined
-  handleSearch()
+  pagination.value.current = 1
+  loadMessages()
 }
 
 const handleTableChange = (pag) => {
@@ -224,24 +191,13 @@ const handleDelete = async (id) => {
   }
 }
 
-const handleAudit = async (id, status) => {
-  try {
-    await auditMessage(id, status)
-    message.success(status === 'approved' ? '已通过' : '已拒绝')
-    loadMessages()
-  } catch (error) {
-    console.error('审核失败:', error)
-    message.error('审核失败')
-  }
-}
-
 onMounted(() => {
   loadMessages()
 })
 </script>
 
 <style scoped lang="scss">
-.messages-management {
+.user-messages {
   .search-form {
     margin-bottom: 16px;
   }

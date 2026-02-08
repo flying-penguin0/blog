@@ -1,8 +1,8 @@
 <template>
-  <div class="messages-management">
+  <div class="chatroom-management">
     <a-card :bordered="false">
       <template #title>
-        <span>留言板管理</span>
+        <span>聊天室管理</span>
       </template>
 
       <!-- 搜索栏 -->
@@ -10,7 +10,7 @@
         <a-form-item label="内容">
           <a-input
             v-model:value="searchForm.content"
-            placeholder="请输入留言内容"
+            placeholder="请输入消息内容"
             allow-clear
             style="width: 200px"
           />
@@ -45,69 +45,64 @@
         </a-form-item>
       </a-form>
 
+      <!-- 消息列表 -->
       <a-table
         :columns="columns"
         :data-source="messages"
         :loading="loading"
         :pagination="pagination"
         @change="handleTableChange"
-        :scroll="{ x: 1200 }"
+        :table-layout="'fixed'"
       >
         <template #bodyCell="{ column, record, index }">
           <template v-if="column.key === 'index'">
             {{ (pagination.current - 1) * pagination.pageSize + index + 1 }}
           </template>
-
-          <template v-else-if="column.key === 'user'">
-            <a-space>
-              <a-avatar :src="record.avatar">
-                {{ record.username?.charAt(0).toUpperCase() }}
-              </a-avatar>
-              <span>{{ record.username }}</span>
-            </a-space>
-          </template>
-
           <template v-else-if="column.key === 'content'">
-            <div class="content-cell">{{ record.content }}</div>
+            <a-tooltip :title="record.content">
+              <div class="content-cell">{{ record.content }}</div>
+            </a-tooltip>
           </template>
-
+          <template v-else-if="column.key === 'avatar'">
+            <a-avatar :size="40" :src="record.avatar || '/default-avatar.png'" />
+          </template>
           <template v-else-if="column.key === 'status'">
-            <a-tag v-if="record.status === 'approved'" color="success">已通过</a-tag>
-            <a-tag v-else-if="record.status === 'pending'" color="warning">待审核</a-tag>
-            <a-tag v-else-if="record.status === 'rejected'" color="error">已拒绝</a-tag>
+            <a-tag v-if="record.status === 'pending'" color="orange">待审核</a-tag>
+            <a-tag v-else-if="record.status === 'approved'" color="green">已通过</a-tag>
+            <a-tag v-else-if="record.status === 'rejected'" color="red">已拒绝</a-tag>
           </template>
-
           <template v-else-if="column.key === 'createTime'">
             {{ formatDate(record.createTime) }}
           </template>
-
           <template v-else-if="column.key === 'action'">
             <a-space>
               <a-button
-                v-if="record.status !== 'approved'"
+                v-if="record.status === 'pending'"
                 type="link"
                 size="small"
-                @click="handleAudit(record.id, 'approved')"
+                @click="handleApprove(record.id)"
               >
                 通过
               </a-button>
+              <a-button
+                v-if="record.status === 'pending' || record.status === 'approved'"
+                type="link"
+                danger
+                size="small"
+                @click="handleReject(record.id)"
+              >
+                拒绝
+              </a-button>
               <a-popconfirm
-                title="确定要删除这条留言吗？"
+                title="确定要删除这条消息吗？"
                 ok-text="确定"
                 cancel-text="取消"
                 @confirm="handleDelete(record.id)"
               >
-                <a-button type="link" danger size="small">删除</a-button>
+                <a-button type="link" danger size="small">
+                  删除
+                </a-button>
               </a-popconfirm>
-              <a-button
-                v-if="record.status !== 'rejected'"
-                type="link"
-                danger
-                size="small"
-                @click="handleAudit(record.id, 'rejected')"
-              >
-                拒绝
-              </a-button>
             </a-space>
           </template>
         </template>
@@ -119,8 +114,11 @@
 <script setup>
 import { ref, onMounted, reactive } from 'vue'
 import { message } from 'ant-design-vue'
-import { SearchOutlined, ReloadOutlined } from '@ant-design/icons-vue'
-import { getMessageList, deleteMessage, auditMessage } from '@/api/message'
+import {
+  SearchOutlined,
+  ReloadOutlined
+} from '@ant-design/icons-vue'
+import { getAdminMessages, deleteMessage, approveMessage, rejectMessage } from '@/api/chatroom'
 import dayjs from 'dayjs'
 
 const loading = ref(false)
@@ -130,87 +128,87 @@ const searchForm = reactive({
   status: undefined
 })
 
-const pagination = ref({
+const pagination = reactive({
   current: 1,
-  pageSize: 10,
+  pageSize: 20,
   total: 0,
   showSizeChanger: true,
   showQuickJumper: true,
-  showTotal: (total) => `共 ${total} 条`
+  showTotal: (total) => `共 ${total} 条`,
+  pageSizeOptions: ['10', '20', '50', '100']
 })
 
 const columns = [
   {
     title: '编号',
     key: 'index',
+    align: 'center',
+    width: 80
+  },
+  {
+    title: '消息内容',
+    key: 'content',
+    dataIndex: 'content',
+    ellipsis: true,
+    align: 'center'
+  },
+  {
+    title: '头像',
+    key: 'avatar',
+    align: 'center',
     width: 80
   },
   {
     title: '用户',
-    key: 'user',
-    width: 150
-  },
-  {
-    title: '留言内容',
-    key: 'content',
-    width: 400
+    dataIndex: 'nickname',
+    key: 'nickname',
+    align: 'center',
+    width: 120
   },
   {
     title: '状态',
     key: 'status',
+    align: 'center',
     width: 100
   },
   {
-    title: '创建时间',
+    title: '发送时间',
     key: 'createTime',
-    width: 180
+    align: 'center',
+    width: 160
   },
   {
     title: '操作',
     key: 'action',
-    fixed: 'right',
+    align: 'center',
     width: 200
   }
 ]
 
 const formatDate = (date) => {
-  return dayjs(date).format('YYYY-MM-DD HH:mm:ss')
+  return dayjs(date).format('YYYY-MM-DD HH:mm')
 }
 
-const loadMessages = async () => {
-  loading.value = true
+const handleApprove = async (id) => {
   try {
-    const res = await getMessageList({
-      page: pagination.value.current,
-      size: pagination.value.pageSize,
-      status: searchForm.status,
-      content: searchForm.content
-    })
-    messages.value = res.data.records || []
-    pagination.value.total = res.data.total || 0
+    await approveMessage(id)
+    message.success('审核通过')
+    loadMessages()
   } catch (error) {
-    console.error('加载留言失败:', error)
-    message.error('加载留言失败')
-  } finally {
-    loading.value = false
+    console.error('审核失败:', error)
+    message.error('审核失败')
   }
 }
 
-const handleSearch = () => {
-  pagination.value.current = 1
-  loadMessages()
-}
-
-const handleReset = () => {
-  searchForm.content = ''
-  searchForm.status = undefined
-  handleSearch()
-}
-
-const handleTableChange = (pag) => {
-  pagination.value.current = pag.current
-  pagination.value.pageSize = pag.pageSize
-  loadMessages()
+const handleReject = async (id) => {
+  try {
+    await rejectMessage(id)
+    message.success('已拒绝')
+    loadMessages()
+  } catch (error) {
+    console.error('拒绝失败:', error)
+    message.error('拒绝失败')
+  }
 }
 
 const handleDelete = async (id) => {
@@ -224,14 +222,44 @@ const handleDelete = async (id) => {
   }
 }
 
-const handleAudit = async (id, status) => {
+const handleSearch = () => {
+  pagination.current = 1
+  loadMessages()
+}
+
+const handleReset = () => {
+  searchForm.content = ''
+  searchForm.status = undefined
+  handleSearch()
+}
+
+const handleTableChange = (pag) => {
+  pagination.current = pag.current
+  pagination.pageSize = pag.pageSize
+  loadMessages()
+}
+
+const loadMessages = async () => {
+  loading.value = true
   try {
-    await auditMessage(id, status)
-    message.success(status === 'approved' ? '已通过' : '已拒绝')
-    loadMessages()
+    const res = await getAdminMessages(pagination.current, pagination.pageSize)
+    let data = res.data || []
+    
+    // 前端过滤
+    if (searchForm.content) {
+      data = data.filter(item => item.content.includes(searchForm.content))
+    }
+    if (searchForm.status) {
+      data = data.filter(item => item.status === searchForm.status)
+    }
+    
+    messages.value = data
+    pagination.total = data.length
   } catch (error) {
-    console.error('审核失败:', error)
-    message.error('审核失败')
+    console.error('加载消息列表失败:', error)
+    message.error('加载失败')
+  } finally {
+    loading.value = false
   }
 }
 
@@ -241,15 +269,16 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-.messages-management {
+.chatroom-management {
   .search-form {
     margin-bottom: 16px;
   }
   
   .content-cell {
     max-width: 400px;
-    word-break: break-word;
-    white-space: pre-wrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 </style>
