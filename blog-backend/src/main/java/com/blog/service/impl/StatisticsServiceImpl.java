@@ -68,18 +68,37 @@ public class StatisticsServiceImpl implements StatisticsService {
                 .sum();
         vo.setTotalViews(totalViews);
         
-        // 统计分类数据
+        // 统计分类数据（通过标签关联）
         List<Category> categories = categoryMapper.selectList(null);
         List<Map<String, Object>> categoryStats = new ArrayList<>();
         for (Category category : categories) {
-            LambdaQueryWrapper<Article> wrapper = new LambdaQueryWrapper<>();
-            wrapper.eq(Article::getCategoryId, category.getId());
-            long count = articleMapper.selectCount(wrapper);
-            if (count > 0) {
-                Map<String, Object> stat = new HashMap<>();
-                stat.put("name", category.getName());
-                stat.put("value", count);
-                categoryStats.add(stat);
+            // 查询该分类下的所有标签
+            LambdaQueryWrapper<Tag> tagWrapper = new LambdaQueryWrapper<>();
+            tagWrapper.eq(Tag::getCategoryId, category.getId());
+            List<Tag> categoryTags = tagMapper.selectList(tagWrapper);
+            
+            if (!categoryTags.isEmpty()) {
+                // 获取这些标签关联的文章数量（去重）
+                List<Long> tagIds = categoryTags.stream()
+                        .map(Tag::getId)
+                        .collect(Collectors.toList());
+                
+                LambdaQueryWrapper<ArticleTag> articleTagWrapper = new LambdaQueryWrapper<>();
+                articleTagWrapper.in(ArticleTag::getTagId, tagIds);
+                List<ArticleTag> articleTags = articleTagMapper.selectList(articleTagWrapper);
+                
+                // 去重统计文章数量
+                long count = articleTags.stream()
+                        .map(ArticleTag::getArticleId)
+                        .distinct()
+                        .count();
+                
+                if (count > 0) {
+                    Map<String, Object> stat = new HashMap<>();
+                    stat.put("name", category.getName());
+                    stat.put("value", count);
+                    categoryStats.add(stat);
+                }
             }
         }
         vo.setCategoryStats(categoryStats);

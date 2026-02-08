@@ -60,6 +60,21 @@ spring:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
     default-property-inclusion: non_null
+  
+  # 邮件配置
+  mail:
+    host: smtp.qq.com
+    port: 587
+    username: 1940286621@qq.com  # 请修改为你的QQ邮箱
+    password:   # 请修改为你的QQ邮箱授权码
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+    default-encoding: UTF-8
 
 # MyBatis Plus 配置
 mybatis-plus:

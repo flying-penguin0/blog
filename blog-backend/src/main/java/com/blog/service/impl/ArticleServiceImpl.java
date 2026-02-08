@@ -49,6 +49,9 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     private ArticleTagMapper articleTagMapper;
     
     @Autowired
+    private com.blog.mapper.CommentMapper commentMapper;
+    
+    @Autowired
     private RedisUtil redisUtil;
     
     @Override
@@ -61,10 +64,8 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         article.setContent(dto.getContent());
         article.setSummary(dto.getSummary());
         article.setCoverImage(dto.getCoverImage());
-        article.setCategoryId(dto.getCategoryId());
         article.setStatus(dto.getStatus() != null ? dto.getStatus() : "published");
         article.setViewCount(0);
-        article.setCommentCount(0);
         
         if ("published".equals(article.getStatus())) {
             article.setPublishTime(LocalDateTime.now());
@@ -113,7 +114,6 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         article.setContent(dto.getContent());
         article.setSummary(dto.getSummary());
         article.setCoverImage(dto.getCoverImage());
-        article.setCategoryId(dto.getCategoryId());
         
         // 更新状态，如果从私密变为公开，设置发布时间
         String oldStatus = article.getStatus();
@@ -195,9 +195,36 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
             wrapper.eq(Article::getStatus, status);
         }
         
-        // 分类筛选
+        // 分类筛选（通过标签的分类来筛选文章）
         if (categoryId != null) {
-            wrapper.eq(Article::getCategoryId, categoryId);
+            // 查询该分类下的所有标签
+            LambdaQueryWrapper<Tag> tagCategoryWrapper = new LambdaQueryWrapper<>();
+            tagCategoryWrapper.eq(Tag::getCategoryId, categoryId);
+            List<Tag> tags = tagMapper.selectList(tagCategoryWrapper);
+            
+            if (!tags.isEmpty()) {
+                List<Long> tagIds = tags.stream().map(Tag::getId).collect(Collectors.toList());
+                
+                // 查询包含这些标签的文章
+                LambdaQueryWrapper<ArticleTag> articleTagWrapper = new LambdaQueryWrapper<>();
+                articleTagWrapper.in(ArticleTag::getTagId, tagIds);
+                List<ArticleTag> articleTags = articleTagMapper.selectList(articleTagWrapper);
+                
+                List<Long> articleIds = articleTags.stream()
+                        .map(ArticleTag::getArticleId)
+                        .distinct()
+                        .collect(Collectors.toList());
+                
+                if (!articleIds.isEmpty()) {
+                    wrapper.in(Article::getId, articleIds);
+                } else {
+                    // 如果该分类下没有文章，返回空结果
+                    return new Page<>(page, size);
+                }
+            } else {
+                // 如果该分类下没有标签，返回空结果
+                return new Page<>(page, size);
+            }
         }
         
         // 关键词搜索
@@ -338,28 +365,40 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
             vo.setAuthorAvatar(user.getAvatar());
         }
         
-        // 查询分类信息
-        if (article.getCategoryId() != null) {
-            Category category = categoryMapper.selectById(article.getCategoryId());
-            if (category != null) {
-                vo.setCategoryName(category.getName());
-            }
-        }
-        
         // 查询标签列表
         LambdaQueryWrapper<ArticleTag> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(ArticleTag::getArticleId, article.getId());
         List<ArticleTag> articleTags = articleTagMapper.selectList(wrapper);
         
         List<TagVO> tagVOList = new ArrayList<>();
+        Long categoryId = null;
+        String categoryName = null;
+        
         for (ArticleTag articleTag : articleTags) {
             Tag tag = tagMapper.selectById(articleTag.getTagId());
             if (tag != null) {
                 TagVO tagVO = BeanUtil.copyProperties(tag, TagVO.class);
                 tagVOList.add(tagVO);
+                
+                // 获取第一个标签的分类信息作为文章的分类
+                if (categoryId == null && tag.getCategoryId() != null) {
+                    categoryId = tag.getCategoryId();
+                    Category category = categoryMapper.selectById(tag.getCategoryId());
+                    if (category != null) {
+                        categoryName = category.getName();
+                    }
+                }
             }
         }
         vo.setTags(tagVOList);
+        vo.setCategoryId(categoryId);
+        vo.setCategoryName(categoryName);
+        
+        // 查询评论数量（通过关联查询comment表）
+        LambdaQueryWrapper<Comment> commentWrapper = new LambdaQueryWrapper<>();
+        commentWrapper.eq(Comment::getArticleId, article.getId());
+        Long commentCount = commentMapper.selectCount(commentWrapper);
+        vo.setCommentCount(commentCount.intValue());
         
         return vo;
     }

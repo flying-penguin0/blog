@@ -86,12 +86,6 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         
         this.save(comment);
         
-        // 只有通过审核的评论才增加文章评论数
-        if ("approved".equals(status)) {
-            article.setCommentCount(article.getCommentCount() + 1);
-            articleMapper.updateById(article);
-        }
-        
         return status;
     }
     
@@ -124,15 +118,6 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
             LambdaQueryWrapper<Comment> wrapper = new LambdaQueryWrapper<>();
             wrapper.eq(Comment::getParentId, id);
             this.remove(wrapper);
-        }
-        
-        // 只有已通过审核的评论被删除时，才减少文章评论数
-        if ("approved".equals(comment.getStatus())) {
-            Article article = articleMapper.selectById(comment.getArticleId());
-            if (article != null) {
-                article.setCommentCount(Math.max(0, article.getCommentCount() - 1));
-                articleMapper.updateById(article);
-            }
         }
     }
     
@@ -190,26 +175,8 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
             throw new BusinessException(ResultCode.COMMENT_NOT_FOUND);
         }
         
-        String oldStatus = comment.getStatus();
         comment.setStatus(status);
         this.updateById(comment);
-        
-        // 如果从待审核变为通过，增加文章评论数
-        if ("pending".equals(oldStatus) && "approved".equals(status)) {
-            Article article = articleMapper.selectById(comment.getArticleId());
-            if (article != null) {
-                article.setCommentCount(article.getCommentCount() + 1);
-                articleMapper.updateById(article);
-            }
-        }
-        // 如果从通过变为拒绝，减少文章评论数
-        else if ("approved".equals(oldStatus) && "rejected".equals(status)) {
-            Article article = articleMapper.selectById(comment.getArticleId());
-            if (article != null) {
-                article.setCommentCount(Math.max(0, article.getCommentCount() - 1));
-                articleMapper.updateById(article);
-            }
-        }
     }
     
     @Override

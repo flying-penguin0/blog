@@ -47,11 +47,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Autowired
     private com.blog.utils.CaptchaGenerator captchaGenerator;
     
+    @Autowired
+    private com.blog.service.EmailService emailService;
+    
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void register(RegisterDTO dto) {
+        // 验证邮箱验证码
+        if (!emailService.verifyCode(dto.getUsername(), dto.getEmail(), dto.getEmailCode())) {
+            throw new BusinessException("邮箱验证码错误或已过期");
+        }
+        
         // 检查用户名是否存在
         User existUser = getUserByUsername(dto.getUsername());
         if (existUser != null) {

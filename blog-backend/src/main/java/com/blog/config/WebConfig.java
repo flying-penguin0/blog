@@ -34,7 +34,9 @@ public class WebConfig implements WebMvcConfigurer {
                 .excludePathPatterns(
                         "/user/login",
                         "/user/register",
-                        "/api/captcha",  // 验证码接口
+                        "/user/*/stats",  // 用户统计信息（文章数、浏览量、评论数）
+                        "/captcha",  // 图片验证码接口
+                        "/captcha/**",  // 邮箱验证码等其他验证码接口
                         "/article/list",
                         "/article/hot",
                         "/category/**",

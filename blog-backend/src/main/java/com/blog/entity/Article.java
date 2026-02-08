@@ -25,11 +25,6 @@ public class Article implements Serializable {
     private Long userId;
     
     /**
-     * 分类ID
-     */
-    private Long categoryId;
-    
-    /**
      * 文章标题
      */
     private String title;
@@ -53,12 +48,6 @@ public class Article implements Serializable {
      * 浏览量
      */
     private Integer viewCount;
-
-    
-    /**
-     * 评论数
-     */
-    private Integer commentCount;
     
     /**
      * 状态（draft:草稿 published:已发布）

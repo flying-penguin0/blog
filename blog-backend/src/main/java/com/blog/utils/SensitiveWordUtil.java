@@ -112,28 +112,6 @@ public class SensitiveWordUtil {
     }
     
     /**
-     * 检查文本中的敏感词，返回所有敏感词
-     * 
-     * @param text 待检查的文本
-     * @return 敏感词列表
-     */
-    public Set<String> getSensitiveWords(String text) {
-        Set<String> sensitiveWords = new HashSet<>();
-        if (text == null || text.trim().isEmpty()) {
-            return sensitiveWords;
-        }
-        
-        for (int i = 0; i < text.length(); i++) {
-            int length = checkSensitiveWord(text, i);
-            if (length > 0) {
-                sensitiveWords.add(text.substring(i, i + length));
-                i = i + length - 1;
-            }
-        }
-        return sensitiveWords;
-    }
-    
-    /**
      * 检查文本从指定位置开始是否包含敏感词
      * 
      * @param text 待检查的文本
@@ -163,29 +141,5 @@ public class SensitiveWordUtil {
             matchFlag = 0;
         }
         return matchFlag;
-    }
-    
-    /**
-     * 替换敏感词为 *
-     * 
-     * @param text 待处理的文本
-     * @return 替换后的文本
-     */
-    public String replaceSensitiveWord(String text) {
-        if (text == null || text.trim().isEmpty()) {
-            return text;
-        }
-        
-        StringBuilder result = new StringBuilder(text);
-        for (int i = 0; i < text.length(); i++) {
-            int length = checkSensitiveWord(text, i);
-            if (length > 0) {
-                for (int j = 0; j < length; j++) {
-                    result.setCharAt(i + j, '*');
-                }
-                i = i + length - 1;
-            }
-        }
-        return result.toString();
     }
 }
