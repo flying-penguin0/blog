@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -267,38 +268,28 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     
     @Override
     public List<ArticleVO> getHotArticles(Integer limit) {
-        String redisKey = "article:hot:ranking";
+        String redisKey = "article:hot:list";
         
-        // 从 Redis 获取热门文章排名（按阅读量降序）
-        Set<Object> hotArticleIds = redisUtil.zReverseRange(redisKey, 0, limit - 1);
-        
-        if (hotArticleIds != null && !hotArticleIds.isEmpty()) {
-            // 从数据库批量查询文章详情
-            List<Long> ids = hotArticleIds.stream()
-                    .map(id -> Long.parseLong(id.toString()))
-                    .collect(Collectors.toList());
+        // 1. 判断 Redis 是否存在热门文章列表
+        Object cachedData = redisUtil.get(redisKey);
+        if (cachedData != null) {
+            // 缓存命中，直接返回
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> cachedList = (List<Map<String, Object>>) cachedData;
             
-            List<Article> articles = this.listByIds(ids);
-            
-            // 按照 Redis 中的排序返回
-            Map<Long, Article> articleMap = articles.stream()
-                    .collect(Collectors.toMap(Article::getId, a -> a));
-            
+            // 将缓存数据转换为 ArticleVO
             List<ArticleVO> result = new ArrayList<>();
-            int rank = 1;
-            for (Object id : hotArticleIds) {
-                Long articleId = Long.parseLong(id.toString());
-                Article article = articleMap.get(articleId);
-                if (article != null && "published".equals(article.getStatus())) {
-                    ArticleVO vo = buildArticleVO(article);
-                    vo.setRank(rank++); // 设置排名
-                    result.add(vo);
-                }
+            for (Map<String, Object> item : cachedList) {
+                ArticleVO vo = new ArticleVO();
+                vo.setId(((Number) item.get("id")).longValue());
+                vo.setTitle((String) item.get("title"));
+                vo.setRank((Integer) item.get("rank"));
+                result.add(vo);
             }
             return result;
         }
         
-        // Redis 中没有数据，从数据库查询并更新到 Redis
+        // 2. 缓存不存在，查询 MySQL 获取查看量前 10 的文章
         LambdaQueryWrapper<Article> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Article::getStatus, "published");
         wrapper.orderByDesc(Article::getViewCount);
@@ -306,21 +297,31 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         
         List<Article> articles = this.list(wrapper);
         
-        // 更新到 Redis
-        for (Article article : articles) {
-            redisUtil.zAdd(redisKey, article.getId().toString(), article.getViewCount());
-        }
-        
-        // 设置过期时间为 1 小时
-        redisUtil.expire(redisKey, 3600);
-        
+        // 3. 构建返回结果（只包含 ID、排名和标题）
         List<ArticleVO> result = new ArrayList<>();
+        List<Map<String, Object>> cacheData = new ArrayList<>();
         int rank = 1;
         for (Article article : articles) {
-            ArticleVO vo = buildArticleVO(article);
-            vo.setRank(rank++);
+            // 构建 VO 用于返回
+            ArticleVO vo = new ArticleVO();
+            vo.setId(article.getId());
+            vo.setTitle(article.getTitle());
+            vo.setRank(rank);
             result.add(vo);
+            
+            // 构建缓存数据（只存储 id、rank、title）
+            Map<String, Object> item = new java.util.HashMap<>();
+            item.put("id", article.getId());
+            item.put("rank", rank);
+            item.put("title", article.getTitle());
+            cacheData.add(item);
+            
+            rank++;
         }
+        
+        // 4. 存入 Redis，设置 1 小时过期时间
+        redisUtil.set(redisKey, cacheData, 3600, TimeUnit.SECONDS);
+        
         return result;
     }
     
@@ -331,12 +332,9 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
             article.setViewCount(article.getViewCount() + 1);
             this.updateById(article);
             
-            // 更新 Redis 中的浏览量
-            redisUtil.increment("article:view:" + id);
-            
-            // 更新热门文章排名
-            String rankingKey = "article:hot:ranking";
-            redisUtil.zAdd(rankingKey, id.toString(), article.getViewCount());
+            // 删除热门文章缓存，下次请求时重新生成
+//            String redisKey = "article:hot";
+//            redisUtil.delete(redisKey);
         }
     }
     

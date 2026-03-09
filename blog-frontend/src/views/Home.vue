@@ -138,10 +138,6 @@
                 >
                   <span class="rank" :class="'rank-' + (article.rank || index + 1)">{{ article.rank || index + 1 }}</span>
                   <span class="title">{{ article.title }}</span>
-                  <span class="views">
-                    <el-icon><View /></el-icon>
-                    {{ article.viewCount }}
-                  </span>
                 </li>
               </ul>
             </div>
@@ -631,19 +627,6 @@ onMounted(() => {
         text-overflow: ellipsis;
         white-space: nowrap;
         transition: color 0.3s;
-      }
-      
-      .views {
-        flex-shrink: 0;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        color: #999;
-        font-size: 13px;
-        
-        .el-icon {
-          font-size: 14px;
-        }
       }
     }
   }

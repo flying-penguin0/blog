@@ -115,7 +115,6 @@ public class AIController {
         response.setCharacterEncoding("UTF-8");
         response.setHeader("Cache-Control", "no-cache");
         response.setHeader("Connection", "keep-alive");
-        
         try (PrintWriter writer = response.getWriter()) {
             aiService.articleQA(dto.getArticleContent(), dto.getMessage(), content -> {
                 try {

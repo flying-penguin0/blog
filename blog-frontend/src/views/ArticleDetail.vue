@@ -9,6 +9,13 @@
           <div class="main-content">
             <article class="article-content">
               <h1 class="title">{{ article.title }}</h1>
+              
+              <div class="tags" v-if="article.tags && article.tags.length > 0">
+                <el-tag v-for="tag in article.tags" :key="tag.id" size="small" type="primary">
+                  {{ tag.name }}
+                </el-tag>
+              </div>
+              
               <div class="meta">
                 <span>作者：{{ article.authorName }}</span>
                 <span>发布时间：{{ formatDate(article.publishTime || article.createTime) }}</span>
@@ -31,11 +38,6 @@
                 >
                   删除文章
                 </el-button>
-              </div>
-              <div class="tags" v-if="article.tags && article.tags.length > 0">
-                <el-tag v-for="tag in article.tags" :key="tag.id" size="small" type="primary">
-                  {{ tag.name }}
-                </el-tag>
               </div>
               <div class="summary" v-if="article.summary">
                 <div class="summary-label">📝 文章摘要</div>
@@ -365,8 +367,16 @@ onUnmounted(() => {
   
   .title {
     font-size: 32px;
+    font-weight: 700;
     margin-bottom: 20px;
     color: #333;
+  }
+  
+  .tags {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
   }
   
   .meta {
@@ -379,13 +389,6 @@ onUnmounted(() => {
     border-bottom: 1px solid #f0f0f0;
     flex-wrap: wrap;
     align-items: center;
-  }
-  
-  .tags {
-    margin-bottom: 30px;
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
   }
   
   .summary {
