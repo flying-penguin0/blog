@@ -104,7 +104,7 @@ minio:
 # DeepSeek API 配置
 deepseek:
   api-url: https://api.deepseek.com/v1/chat/completions
-  api-key: sk-acec8f7e046a4321b6abc0fa0096d6f2
+  api-key: 
   api-model: deepseek-chat
   api-timeout: 60000
 
