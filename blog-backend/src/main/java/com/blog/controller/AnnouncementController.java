@@ -29,13 +29,15 @@ public class AnnouncementController {
      */
     @Operation(summary = "获取所有公告列表")
     @GetMapping("/list")
-    public Result<List<Announcement>> getAnnouncementList(HttpServletRequest request) {
+    public Result<List<Announcement>> getAnnouncementList(
+            @RequestParam(required = false) String title,
+            HttpServletRequest request) {
         // 验证管理员权限
         String role = (String) request.getAttribute("role");
         if (!"admin".equals(role)) {
             return Result.error("无权限访问");
         }
-        List<Announcement> announcements = announcementService.getAnnouncementList();
+        List<Announcement> announcements = announcementService.getAnnouncementList(title);
         return Result.success(announcements);
     }
     

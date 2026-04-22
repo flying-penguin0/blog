@@ -33,9 +33,15 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
     }
     
     @Override
-    public PageResult<CategoryVO> getCategoryPage(Integer page, Integer size) {
+    public PageResult<CategoryVO> getCategoryPage(Integer page, Integer size, String name) {
         Page<Category> pageParam = new Page<>(page, size);
         LambdaQueryWrapper<Category> wrapper = new LambdaQueryWrapper<>();
+        
+        // 如果提供了名称参数，添加模糊查询条件
+        if (name != null && !name.trim().isEmpty()) {
+            wrapper.like(Category::getName, name.trim());
+        }
+        
         wrapper.orderByDesc(Category::getCreateTime);
         Page<Category> result = this.page(pageParam, wrapper);
         

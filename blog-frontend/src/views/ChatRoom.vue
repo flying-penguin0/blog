@@ -174,6 +174,7 @@ const onUserStatusChanged = async () => {
 const sendMessage = () => {
   if (!inputMessage.value.trim()) return
 
+  // 直接发送消息，由后端检测敏感词并设置状态
   ChatWebSocket.sendMessage({
     content: inputMessage.value.trim()
   }, currentUserId)

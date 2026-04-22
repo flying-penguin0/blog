@@ -14,7 +14,7 @@ public interface AnnouncementService {
     /**
      * 获取所有公告列表
      */
-    List<Announcement> getAnnouncementList();
+    List<Announcement> getAnnouncementList(String title);
     
     /**
      * 获取最新的公告列表

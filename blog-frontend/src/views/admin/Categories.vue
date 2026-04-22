@@ -13,6 +13,34 @@
         </div>
       </template>
 
+      <!-- 搜索栏 -->
+      <a-form layout="inline" :model="searchForm" class="search-form">
+        <a-form-item label="分类名">
+          <a-input
+            v-model:value="searchForm.name"
+            placeholder="请输入分类名"
+            allow-clear
+            style="width: 200px"
+          />
+        </a-form-item>
+        <a-form-item>
+          <a-space>
+            <a-button type="primary" @click="handleSearch">
+              <template #icon>
+                <SearchOutlined />
+              </template>
+              搜索
+            </a-button>
+            <a-button @click="handleReset">
+              <template #icon>
+                <ReloadOutlined />
+              </template>
+              重置
+            </a-button>
+          </a-space>
+        </a-form-item>
+      </a-form>
+
       <!-- 分类列表 -->
       <a-table
         :columns="columns"
@@ -78,7 +106,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { message } from 'ant-design-vue'
-import { PlusOutlined } from '@ant-design/icons-vue'
+import { PlusOutlined, SearchOutlined, ReloadOutlined } from '@ant-design/icons-vue'
 import { getCategoryPage, createCategory, updateCategory, deleteCategory as deleteCategoryApi } from '@/api/article'
 import dayjs from 'dayjs'
 
@@ -87,6 +115,9 @@ const saving = ref(false)
 const categories = ref([])
 const showDialog = ref(false)
 const isEdit = ref(false)
+const searchForm = ref({
+  name: ''
+})
 const form = ref({
   id: null,
   name: '',
@@ -200,12 +231,24 @@ const handleTableChange = (pag) => {
   loadCategories()
 }
 
+const handleSearch = () => {
+  pagination.value.current = 1
+  loadCategories()
+}
+
+const handleReset = () => {
+  searchForm.value.name = ''
+  pagination.value.current = 1
+  loadCategories()
+}
+
 const loadCategories = async () => {
   loading.value = true
   try {
     const res = await getCategoryPage({
       page: pagination.value.current,
-      size: pagination.value.pageSize
+      size: pagination.value.pageSize,
+      name: searchForm.value.name || undefined
     })
     categories.value = res.data.records || []
     pagination.value.total = res.data.total || 0
@@ -223,6 +266,10 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .categories-management {
+  .search-form {
+    margin-bottom: 16px;
+  }
+  
   .card-header {
     display: flex;
     justify-content: space-between;

@@ -22,7 +22,7 @@ public interface CategoryService extends IService<Category> {
     /**
      * 分页查询分类
      */
-    PageResult<CategoryVO> getCategoryPage(Integer page, Integer size);
+    PageResult<CategoryVO> getCategoryPage(Integer page, Integer size, String name);
     
     /**
      * 创建分类

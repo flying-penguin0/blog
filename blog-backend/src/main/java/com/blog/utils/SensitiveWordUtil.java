@@ -1,8 +1,13 @@
 package com.blog.utils;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.blog.entity.SensitiveWord;
+import com.blog.mapper.SensitiveWordMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
+import jakarta.annotation.PostConstruct;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 敏感词过滤工具类
@@ -12,6 +17,9 @@ import java.util.*;
  */
 @Component
 public class SensitiveWordUtil {
+    
+    @Autowired
+    private SensitiveWordMapper sensitiveWordMapper;
     
     /**
      * 敏感词库（DFA算法的HashMap结构）
@@ -24,38 +32,58 @@ public class SensitiveWordUtil {
     private static final String IS_END = "isEnd";
     
     /**
-     * 初始化敏感词库
+     * 初始化敏感词库 - 从数据库加载
      */
-    public SensitiveWordUtil() {
-        // 初始化敏感词列表
+    @PostConstruct
+    public void init() {
+        loadSensitiveWordsFromDatabase();
+    }
+    
+    /**
+     * 从数据库加载敏感词
+     */
+    private void loadSensitiveWordsFromDatabase() {
+        try {
+            LambdaQueryWrapper<SensitiveWord> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(SensitiveWord::getStatus, 1); // 只加载启用的敏感词
+            
+            List<SensitiveWord> words = sensitiveWordMapper.selectList(wrapper);
+            Set<String> sensitiveWords = words.stream()
+                    .map(SensitiveWord::getWord)
+                    .collect(Collectors.toSet());
+
+            // 如果数据库为空，使用默认敏感词
+            if (sensitiveWords.isEmpty()) {
+                sensitiveWords = getDefaultSensitiveWords();
+            }
+            
+            // 初始化敏感词库
+            initSensitiveWordMap(sensitiveWords);
+            
+            System.out.println("敏感词库加载成功，共加载 " + sensitiveWords.size() + " 个敏感词");
+        } catch (Exception e) {
+            System.err.println("从数据库加载敏感词失败，使用默认敏感词库: " + e.getMessage());
+            // 如果数据库加载失败，使用默认敏感词
+            initSensitiveWordMap(getDefaultSensitiveWords());
+        }
+    }
+    
+    /**
+     * 获取默认敏感词列表
+     */
+    private Set<String> getDefaultSensitiveWords() {
         Set<String> sensitiveWords = new HashSet<>();
-        
-        // 添加常见敏感词（示例）
-        sensitiveWords.add("傻逼");
-        sensitiveWords.add("fuck");
-        sensitiveWords.add("shit");
-        sensitiveWords.add("垃圾");
-        sensitiveWords.add("废物");
-        sensitiveWords.add("白痴");
-        sensitiveWords.add("智障");
-        sensitiveWords.add("脑残");
-        sensitiveWords.add("sb");
-        sensitiveWords.add("SB");
-        sensitiveWords.add("傻B");
-        sensitiveWords.add("傻b");
-        sensitiveWords.add("煞笔");
-        sensitiveWords.add("沙比");
-        sensitiveWords.add("妈的");
-        sensitiveWords.add("草泥马");
-        sensitiveWords.add("尼玛");
-        sensitiveWords.add("你妈");
-        sensitiveWords.add("操");
-        sensitiveWords.add("日");
-        sensitiveWords.add("艹");
-        sensitiveWords.add("傻");
-        
-        // 初始化敏感词库
+        return sensitiveWords;
+    }
+    
+    /**
+     * 重新加载敏感词（用于动态更新）
+     */
+    public synchronized void reloadSensitiveWords(List<String> words) {
+        Set<String> sensitiveWords = new HashSet<>(words);
+        sensitiveWordMap.clear();
         initSensitiveWordMap(sensitiveWords);
+        System.out.println("敏感词库已刷新，当前共 " + sensitiveWords.size() + " 个敏感词");
     }
     
     /**

@@ -111,6 +111,7 @@ const submitMessage = async () => {
   
   submitting.value = true
   try {
+    // 直接提交留言，由后端检测敏感词并设置状态
     const res = await createMessage({ content: messageContent.value })
     const status = res.data
     
@@ -121,7 +122,7 @@ const submitMessage = async () => {
       // 立即加载新留言
       await loadMessages()
     } else if (status === 'pending') {
-      statusMessage.value = '留言包含敏感词，已提交审核'
+      statusMessage.value = '留言已提交，包含敏感词需要审核后才能显示'
     }
     
     // 3秒后隐藏提示

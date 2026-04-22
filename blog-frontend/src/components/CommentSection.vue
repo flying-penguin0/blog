@@ -236,12 +236,19 @@ const submitComment = async () => {
   
   submitting.value = true
   try {
+    // 直接提交评论，由后端检测敏感词并设置状态
     const res = await createComment({
       articleId: props.articleId,
       content: commentContent.value
     })
-    // 使用后端返回的消息
-    ElMessage.success(res.message || '评论成功')
+    
+    // 根据后端返回的状态显示不同提示
+    if (res.data === 'pending') {
+      ElMessage.warning('评论已提交，包含敏感词需要审核后才能显示')
+    } else {
+      ElMessage.success(res.message || '评论成功')
+    }
+    
     commentContent.value = ''
     loadComments()
   } catch (error) {
@@ -286,13 +293,20 @@ const submitReply = async (comment) => {
   
   submitting.value = true
   try {
+    // 直接提交回复，由后端检测敏感词并设置状态
     const res = await createComment({
       articleId: props.articleId,
       parentId: comment.id,
       content: replyContent.value
     })
-    // 使用后端返回的消息
-    ElMessage.success(res.message || '回复成功')
+    
+    // 根据后端返回的状态显示不同提示
+    if (res.data === 'pending') {
+      ElMessage.warning('回复已提交，包含敏感词需要审核后才能显示')
+    } else {
+      ElMessage.success(res.message || '回复成功')
+    }
+    
     cancelReply()
     loadComments()
   } catch (error) {

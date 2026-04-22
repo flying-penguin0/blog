@@ -129,6 +129,12 @@ const router = createRouter({
           name: 'admin-chatroom',
           component: () => import('@/views/admin/ChatRoom.vue'),
           meta: { title: '聊天室管理' }
+        },
+        {
+          path: 'sensitive-words',
+          name: 'admin-sensitive-words',
+          component: () => import('@/views/admin/SensitiveWords.vue'),
+          meta: { title: '敏感词管理' }
         }
       ]
     },

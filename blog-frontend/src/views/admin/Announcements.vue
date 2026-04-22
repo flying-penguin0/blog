@@ -13,6 +13,34 @@
         </div>
       </template>
 
+      <!-- 搜索栏 -->
+      <a-form layout="inline" :model="searchForm" class="search-form">
+        <a-form-item label="标题">
+          <a-input
+            v-model:value="searchForm.title"
+            placeholder="请输入公告标题"
+            allow-clear
+            style="width: 200px"
+          />
+        </a-form-item>
+        <a-form-item>
+          <a-space>
+            <a-button type="primary" @click="handleSearch">
+              <template #icon>
+                <SearchOutlined />
+              </template>
+              搜索
+            </a-button>
+            <a-button @click="handleReset">
+              <template #icon>
+                <ReloadOutlined />
+              </template>
+              重置
+            </a-button>
+          </a-space>
+        </a-form-item>
+      </a-form>
+
       <!-- 公告列表 -->
       <a-table
         :columns="columns"
@@ -82,7 +110,7 @@
 <script setup>
 import { ref, onMounted, computed, reactive } from 'vue'
 import { message } from 'ant-design-vue'
-import { PlusOutlined } from '@ant-design/icons-vue'
+import { PlusOutlined, SearchOutlined, ReloadOutlined } from '@ant-design/icons-vue'
 import {
   getAnnouncementList,
   createAnnouncement,
@@ -96,6 +124,9 @@ const saving = ref(false)
 const announcements = ref([])
 const showDialog = ref(false)
 const isEdit = ref(false)
+const searchForm = ref({
+  title: ''
+})
 const form = ref({
   id: null,
   title: '',
@@ -211,17 +242,34 @@ const handleTableChange = (pag) => {
   loadAnnouncements()
 }
 
+const handleSearch = () => {
+  pagination.current = 1
+  loadAnnouncements()
+}
+
+const handleReset = () => {
+  searchForm.value.title = ''
+  pagination.current = 1
+  loadAnnouncements()
+}
+
 const loadAnnouncements = async () => {
   loading.value = true
   try {
     const res = await getAnnouncementList({
       page: pagination.current,
-      size: pagination.pageSize
+      size: pagination.pageSize,
+      title: searchForm.value.title || undefined
     })
     // 后端返回的是列表，不是分页对象
     if (Array.isArray(res.data)) {
-      announcements.value = res.data
-      pagination.total = res.data.length
+      // 前端过滤
+      let data = res.data
+      if (searchForm.value.title) {
+        data = data.filter(item => item.title && item.title.includes(searchForm.value.title))
+      }
+      announcements.value = data
+      pagination.total = data.length
     } else {
       announcements.value = res.data.records || []
       pagination.total = res.data.total || 0
@@ -240,6 +288,10 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .announcements-management {
+  .search-form {
+    margin-bottom: 16px;
+  }
+  
   .card-header {
     display: flex;
     justify-content: space-between;

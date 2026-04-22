@@ -24,8 +24,14 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     private AnnouncementMapper announcementMapper;
     
     @Override
-    public List<Announcement> getAnnouncementList() {
+    public List<Announcement> getAnnouncementList(String title) {
         LambdaQueryWrapper<Announcement> wrapper = new LambdaQueryWrapper<>();
+        
+        // 如果提供了标题参数，添加模糊查询条件
+        if (title != null && !title.trim().isEmpty()) {
+            wrapper.like(Announcement::getTitle, title.trim());
+        }
+        
         wrapper.orderByDesc(Announcement::getCreateTime);
         return announcementMapper.selectList(wrapper);
     }

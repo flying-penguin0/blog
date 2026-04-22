@@ -73,6 +73,12 @@
           </template>
           <span>聊天室管理</span>
         </a-menu-item>
+        <a-menu-item key="/admin/sensitive-words">
+          <template #icon>
+            <StopOutlined />
+          </template>
+          <span>敏感词管理</span>
+        </a-menu-item>
       </a-menu>
     </a-layout-sider>
 
@@ -230,7 +236,8 @@ import {
   HomeOutlined,
   LogoutOutlined,
   MenuUnfoldOutlined,
-  MenuFoldOutlined
+  MenuFoldOutlined,
+  StopOutlined
 } from '@ant-design/icons-vue'
 
 const route = useRoute()
@@ -274,7 +281,9 @@ const currentPageTitle = computed(() => {
     '/admin/categories': '分类管理',
     '/admin/tags': '标签管理',
     '/admin/announcements': '公告管理',
-    '/admin/messages': '留言管理'
+    '/admin/messages': '留言管理',
+    '/admin/chatroom': '聊天室管理',
+    '/admin/sensitive-words': '敏感词管理'
   }
   return titles[route.path] || '管理后台'
 })

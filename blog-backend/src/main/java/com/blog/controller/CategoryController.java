@@ -42,8 +42,9 @@ public class CategoryController {
     @GetMapping("/page")
     public Result<PageResult<CategoryVO>> getCategoryPage(
             @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
-        PageResult<CategoryVO> result = categoryService.getCategoryPage(page, size);
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) String name) {
+        PageResult<CategoryVO> result = categoryService.getCategoryPage(page, size, name);
         return Result.success(result);
     }
     
