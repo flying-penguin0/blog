@@ -1,5 +1,5 @@
 <template>
-  <div class="ai-assistant">
+  <div ref="assistantRef" class="ai-assistant">
     <div class="ai-header">
       <span class="ai-title">AI 写作助手</span>
       <el-button text @click="$emit('close')" class="close-btn">
@@ -48,7 +48,7 @@
                   插入到编辑器
                 </el-button>
               </div>
-              <div class="result-body">
+              <div ref="contentResultBodyRef" class="result-body">
                 <div v-if="!generatedContent && !isGenerating" class="empty-tip">
                   点击"生成内容"按钮开始创作
                 </div>
@@ -107,7 +107,7 @@
                   插入到编辑器
                 </el-button>
               </div>
-              <div class="result-body">
+              <div ref="continueResultBodyRef" class="result-body">
                 <div v-if="!generatedContent && !isGenerating" class="empty-tip">
                   点击"开始续写"按钮继续创作
                 </div>
@@ -166,7 +166,7 @@
                   替换编辑器内容
                 </el-button>
               </div>
-              <div class="result-body">
+              <div ref="optimizeResultBodyRef" class="result-body">
                 <div v-if="!generatedContent && !isGenerating" class="empty-tip">
                   点击"开始优化"按钮优化内容
                 </div>
@@ -190,7 +190,7 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch, nextTick, onBeforeUnmount } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Close, MagicStick, EditPen, Star, Plus, RefreshRight, Loading } from '@element-plus/icons-vue'
 import { 
@@ -214,18 +214,107 @@ const activeTab = ref('content')
 const isGenerating = ref(false)
 const outline = ref('')
 const generatedContent = ref('')
-const resultBodyRef = ref(null)
+const contentResultBodyRef = ref(null)
+const continueResultBodyRef = ref(null)
+const optimizeResultBodyRef = ref(null)
+let autoScrollTimer = null
+let autoScrollFrame = null
+let resultObserver = null
+
+const getCurrentResultBody = () => {
+  if (activeTab.value === 'content') return contentResultBodyRef.value
+  if (activeTab.value === 'continue') return continueResultBodyRef.value
+  if (activeTab.value === 'optimize') return optimizeResultBodyRef.value
+  return null
+}
+
+const getScrollTargets = (resultBody) => {
+  if (!resultBody) return []
+
+  return [
+    resultBody,
+    ...resultBody.querySelectorAll(
+      '.md-editor-preview-wrapper, .md-editor-preview, .md-editor-preview-only'
+    )
+  ]
+}
+
+const forceScrollTargetsToBottom = (resultBody) => {
+  getScrollTargets(resultBody).forEach((target) => {
+    target.scrollTop = target.scrollHeight
+  })
+}
+
+const scrollResultToBottom = async () => {
+  await nextTick()
+
+  const resultBody = getCurrentResultBody()
+  if (!resultBody) return
+
+  forceScrollTargetsToBottom(resultBody)
+
+  requestAnimationFrame(() => {
+    forceScrollTargetsToBottom(resultBody)
+    autoScrollFrame = requestAnimationFrame(() => {
+      forceScrollTargetsToBottom(resultBody)
+    })
+  })
+}
+
+const observeResultChanges = () => {
+  if (resultObserver) {
+    resultObserver.disconnect()
+    resultObserver = null
+  }
+
+  const resultBody = getCurrentResultBody()
+  if (!resultBody) return
+
+  resultObserver = new MutationObserver(() => {
+    if (isGenerating.value) {
+      forceScrollTargetsToBottom(resultBody)
+    }
+  })
+
+  resultObserver.observe(resultBody, {
+    childList: true,
+    subtree: true,
+    characterData: true
+  })
+}
+
+const startAutoScroll = () => {
+  stopAutoScroll()
+  observeResultChanges()
+
+  autoScrollTimer = window.setInterval(() => {
+    scrollResultToBottom()
+  }, 80)
+}
+
+const stopAutoScroll = () => {
+  if (autoScrollTimer) {
+    clearInterval(autoScrollTimer)
+    autoScrollTimer = null
+  }
+
+  if (autoScrollFrame) {
+    cancelAnimationFrame(autoScrollFrame)
+    autoScrollFrame = null
+  }
+
+  if (resultObserver) {
+    resultObserver.disconnect()
+    resultObserver = null
+  }
+}
 
 // 监听生成内容的变化，自动滚动到底部
 watch(generatedContent, async () => {
   if (generatedContent.value && isGenerating.value) {
-    await nextTick()
-    const resultBody = document.querySelector('.result-body')
-    if (resultBody) {
-      resultBody.scrollTop = resultBody.scrollHeight
-    }
+    scrollResultToBottom()
   }
-})
+}, { flush: 'post' })
 
 // 生成内容
 const handleGenerateContent = () => {
@@ -233,19 +322,24 @@ const handleGenerateContent = () => {
 
   generatedContent.value = ''
   isGenerating.value = true
+  startAutoScroll()
 
   generateContent(
     outline.value,
     (text) => {
       generatedContent.value += text
+      scrollResultToBottom()
     },
     (error) => {
       console.error('生成内容失败:', error)
       ElMessage.error('生成内容失败，请重试')
       isGenerating.value = false
+      stopAutoScroll()
     },
     () => {
       isGenerating.value = false
+      stopAutoScroll()
+      scrollResultToBottom()
       ElMessage.success('内容生成完成')
     }
   )
@@ -257,19 +351,24 @@ const handleContinueWriting = () => {
 
   generatedContent.value = ''
   isGenerating.value = true
+  startAutoScroll()
 
   continueWriting(
     props.editorContent,
     (text) => {
       generatedContent.value += text
+      scrollResultToBottom()
     },
     (error) => {
       console.error('续写失败:', error)
       ElMessage.error('续写失败，请重试')
       isGenerating.value = false
+      stopAutoScroll()
     },
     () => {
       isGenerating.value = false
+      stopAutoScroll()
+      scrollResultToBottom()
       ElMessage.success('续写完成')
     }
   )
@@ -281,19 +380,24 @@ const handleOptimize = () => {
 
   generatedContent.value = ''
   isGenerating.value = true
+  startAutoScroll()
 
   optimizeContent(
     props.editorContent,
     (text) => {
       generatedContent.value += text
+      scrollResultToBottom()
     },
     (error) => {
       console.error('优化失败:', error)
       ElMessage.error('优化失败，请重试')
       isGenerating.value = false
+      stopAutoScroll()
     },
     () => {
       isGenerating.value = false
+      stopAutoScroll()
+      scrollResultToBottom()
       ElMessage.success('优化完成')
     }
   )
@@ -313,7 +417,13 @@ const replaceEditor = () => {
 
 // 切换标签时清空生成的内容
 watch(activeTab, () => {
+  stopAutoScroll()
   generatedContent.value = ''
+  scrollResultToBottom()
+})
+
+onBeforeUnmount(() => {
+  stopAutoScroll()
 })
 </script>
 

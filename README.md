@@ -303,31 +303,31 @@ docker run -d \
   --name redis \
   redis:7-alpine
 ```
-
 ---
 
 ## 🎯 功能特性
 
-
 ### 📝 文章管理
-![输入图片说明](https://foruda.gitee.com/images/1769865484104506374/ae0573b0_14951868.png "屏幕截图")
+![文章管理](img_1.png)
 
 #### 前台功能
-![输入图片说明](https://foruda.gitee.com/images/1769865546029609571/f8c0820a_14951868.png "屏幕截图")
+![前台功能](img_2.png)
 
 #### 编辑器功能
 ![输入图片说明](https://foruda.gitee.com/images/1769865514713008750/ba96a48d_14951868.png "屏幕截图")
 
 #### 后台管理
-![输入图片说明](https://foruda.gitee.com/images/1769865603522156216/6f1f4e26_14951868.png "屏幕截图")
+![后台管理](img_3.png)
 
 ### 💬 评论系统
 ![输入图片说明](https://foruda.gitee.com/images/1769865637555311881/d76741a3_14951868.png "屏幕截图")
 
 ### 💭 聊天室
-![输入图片说明](https://foruda.gitee.com/images/1769865687135416212/2f0e7a28_14951868.png "屏幕截图")
+![聊天室](img_4.png)
+
 ### 📮 留言板
-![输入图片说明](https://foruda.gitee.com/images/1769865921646395871/f9368de4_14951868.png "屏幕截图")
+![留言板](img_5.png)
+
 #### 编辑器 AI 助手
 ![输入图片说明](https://foruda.gitee.com/images/1769865876729883186/b1c891bf_14951868.png "屏幕截图")
 
@@ -349,6 +349,7 @@ docker run -d \
 - `chatroom_message` - 聊天室消息表
 - `message` - 留言表
 - `announcement` - 公告表
+- `sensitive_word` - 敏感词表
 
 ## 📄 开源协议
 
@@ -364,7 +365,7 @@ docker run -d \
 - [Ant Design Vue](https://antdv.com/)
 - [MyBatis Plus](https://baomidou.com/)
 - [md-editor-v3](https://github.com/imzbf/md-editor-v3)
-- [vue3-danmaku](https://github.com/hellodigua/vue-danmaku)
+- [vue-danmaku](https://github.com/hellodigua/vue-danmaku)
 - [Hutool](https://hutool.cn/)
 - [Ruyu-Blog](https://gitee.com/kuailemao/ruyu-blog)
 

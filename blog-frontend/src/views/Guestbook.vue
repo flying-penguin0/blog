@@ -7,11 +7,12 @@
       <div class="background-image" :style="{ backgroundImage: `url(${randomBackground})` }"></div>
       
       <!-- 弹幕容器 -->
-      <vue3-danmaku
+      <vue-danmaku
         ref="danmakuRef"
         v-model:danmus="danmus"
         :speeds="100"
         :channels="5"
+        :top="8"
         :loop="false"
         :useSlot="true"
         :debounce="200"
@@ -26,7 +27,7 @@
             <span class="danmu-content">{{ danmu.content }}</span>
           </div>
         </template>
-      </vue3-danmaku>
+      </vue-danmaku>
       
       <!-- 中心内容区域 -->
       <div class="center-content">
@@ -36,7 +37,7 @@
             {{ statusMessage }}
           </div>
         </transition>
-        
+
         <!-- 输入区域 -->
         <div class="input-wrapper" v-if="userStore.token">
           <div class="input-area">
@@ -77,7 +78,7 @@ import { useUserStore } from '@/stores/user'
 import { createMessage, getMessageList } from '@/api/message'
 import { ElMessage } from 'element-plus'
 import Header from '@/components/Header.vue'
-import Vue3Danmaku from 'vue3-danmaku'
+import VueDanmaku from 'vue-danmaku'
 
 // 导入背景图片
 import bg1 from '@/assets/images/bg1.png'
@@ -92,6 +93,8 @@ const submitting = ref(false)
 const danmakuRef = ref(null)
 const statusMessage = ref('')
 const showStatus = ref(false)
+const loadedMessageIds = ref(new Set())
+const hasInitializedDanmaku = ref(false)
 let loadInterval = null
 
 // 背景图片数组
@@ -147,14 +150,33 @@ const loadMessages = async () => {
       status: 'approved'
     })
     const messages = res.data.records || []
-    
-    // 转换为弹幕格式，每条留言只显示一次
-    danmus.value = messages.map((msg, index) => ({
-      id: `${msg.id}-${Date.now()}-${index}`,
+
+    const normalizedMessages = messages.map((msg) => ({
+      id: msg.id,
       avatar: msg.avatar,
       nickname: msg.nickname || msg.username,
       content: msg.content
     }))
+
+    if (!hasInitializedDanmaku.value) {
+      danmus.value = [...normalizedMessages].reverse()
+      loadedMessageIds.value = new Set(normalizedMessages.map((msg) => msg.id))
+      hasInitializedDanmaku.value = true
+      return
+    }
+
+    const newMessages = normalizedMessages
+      .filter((msg) => !loadedMessageIds.value.has(msg.id))
+      .reverse()
+
+    if (!newMessages.length) {
+      return
+    }
+
+    newMessages.forEach((msg) => {
+      loadedMessageIds.value.add(msg.id)
+      danmus.value.push(msg)
+    })
   } catch (error) {
     console.error('加载留言失败:', error)
   }
@@ -183,7 +205,7 @@ onUnmounted(() => {
 
 .guestbook-container {
   position: relative;
-  min-height: calc(100vh - 60px);
+  min-height: 100vh;
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -192,7 +214,7 @@ onUnmounted(() => {
 
 .background-image {
   position: fixed;
-  top: 60px;
+  top: 0;
   left: 0;
   right: 0;
   bottom: 0;
@@ -219,38 +241,48 @@ onUnmounted(() => {
 
 .danmaku-container {
   position: fixed;
-  top: 60px;
+  top: 86px;
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 1;
+  z-index: 3;
   pointer-events: none;
 }
 
 .danmu-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.9);
-  padding: 8px 16px;
-  border-radius: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  gap: 10px;
+  background: rgba(238, 240, 249, 0.28);
+  padding: 10px 18px 10px 10px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  box-shadow: 0 10px 28px rgba(28, 38, 56, 0.12);
+  backdrop-filter: blur(10px);
   font-size: 14px;
   white-space: nowrap;
+
+  :deep(.el-avatar) {
+    flex-shrink: 0;
+    border: 2px solid rgba(255, 255, 255, 0.72);
+    box-shadow: 0 4px 12px rgba(20, 28, 40, 0.12);
+  }
   
   .danmu-username {
-    font-weight: 600;
-    color: #409eff;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.96);
+    text-shadow: 0 1px 3px rgba(24, 32, 44, 0.18);
   }
   
   .danmu-content {
-    color: #333;
+    color: rgba(255, 255, 255, 0.88);
+    text-shadow: 0 1px 3px rgba(24, 32, 44, 0.16);
   }
 }
 
 .center-content {
   position: relative;
-  z-index: 2;
+  z-index: 1;
   width: 100%;
   max-width: 550px;
   padding: 0 20px;

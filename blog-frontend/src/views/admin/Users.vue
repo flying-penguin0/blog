@@ -105,6 +105,8 @@
     <a-modal
       v-model:open="showEditDialog"
       title="编辑用户"
+      okText="确认"
+      cancelText="取消"
       @ok="saveUser"
       :confirmLoading="saving"
     >

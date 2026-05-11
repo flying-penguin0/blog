@@ -2,10 +2,9 @@
   <header 
     class="header" 
     :class="{ 'header-transparent': transparent }"
-    :style="transparent ? 'background: rgba(255, 255, 255, 0.02) !important;' : ''"
   >
-    <div class="container" :style="transparent ? 'background: transparent !important;' : ''">
-      <div class="header-content" :style="transparent ? 'background: transparent !important;' : ''">
+    <div class="container">
+      <div class="header-content">
         <!-- <h1 class="logo" @click="$router.push('/')">基于DeepSeek开放平台的个人知识博客</h1> -->
         <nav class="nav">
           <router-link to="/" class="nav-item" :class="{ active: $route.path === '/' }">
@@ -48,7 +47,7 @@
             </el-dropdown>
           </template>
           <template v-else>
-            <el-button type="primary" size="small" @click="$router.push('/login')">登录/注册</el-button>
+            <el-button class="auth-btn" @click="$router.push('/login')">登录/注册</el-button>
           </template>
         </div>
       </div>
@@ -101,22 +100,26 @@ const handleLogout = () => {
   top: 0;
   z-index: 1000;
   background: #ffffff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
   transition: all 0.3s;
   
   &.header-transparent {
-    background: transparent !important;
-    backdrop-filter: blur(10px);
+    position: absolute;
+    left: 0;
+    right: 0;
+    background: linear-gradient(180deg, rgba(25, 40, 62, 0.28) 0%, rgba(25, 40, 62, 0.12) 68%, rgba(25, 40, 62, 0) 100%);
+    backdrop-filter: blur(8px);
     box-shadow: none;
     border-bottom: none;
     
     .container {
-      background: transparent !important;
+      background: transparent;
       padding: 0 20px !important;
     }
     
     .header-content {
-      background: transparent !important;
+      background: transparent;
     }
     
     .logo {
@@ -125,33 +128,53 @@ const handleLogout = () => {
       font-weight: 700;
     }
     
-    .nav-item {
-      color: rgba(255, 255, 255, 0.95);
-      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
-      
-      &:hover {
-        background: rgba(255, 255, 255, 0.1);
-        color: #fff;
-      }
-      
-      &.active {
-        background: rgba(255, 255, 255, 0.15);
-        color: #fff;
+    .nav {
+      padding: 6px 0;
+      gap: 8px;
+
+      .nav-item {
+        min-height: 38px;
+        padding: 0 11px;
+        gap: 7px;
+        font-size: 14px;
+        border-radius: 10px;
+        color: rgba(255, 255, 255, 0.92);
+        text-shadow: 0 1px 6px rgba(0, 0, 0, 0.28);
+        border: 1px solid transparent;
+        
+        &:hover {
+          background: rgba(18, 30, 46, 0.16);
+          border-color: rgba(255, 255, 255, 0.06);
+          color: #fff;
+        }
+        
+        &.active {
+          background: rgba(18, 30, 46, 0.22);
+          border-color: rgba(255, 255, 255, 0.08);
+          color: #fff;
+          box-shadow: 0 8px 20px rgba(17, 28, 45, 0.1);
+        }
+
+        .el-icon {
+          font-size: 15px;
+          color: rgba(255, 255, 255, 0.74);
+        }
       }
     }
     
     .el-button {
-      background: rgba(64, 158, 255, 0.8) !important;
-      border-color: rgba(64, 158, 255, 0.8) !important;
+      background: rgba(18, 30, 46, 0.2) !important;
+      border-color: rgba(255, 255, 255, 0.08) !important;
+      color: #fff !important;
       
       &:hover {
-        background: rgba(64, 158, 255, 1) !important;
-        border-color: rgba(64, 158, 255, 1) !important;
+        background: rgba(18, 30, 46, 0.26) !important;
+        border-color: rgba(255, 255, 255, 0.12) !important;
       }
     }
     
     .el-avatar {
-      background: rgba(64, 158, 255, 0.8) !important;
+      box-shadow: 0 6px 18px rgba(17, 28, 45, 0.18);
     }
   }
   
@@ -159,8 +182,8 @@ const handleLogout = () => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    height: 60px;
-    gap: 40px;
+    height: 72px;
+    gap: 36px;
     background: #ffffff;
   }
   
@@ -175,34 +198,58 @@ const handleLogout = () => {
   
   .nav {
     display: flex;
-    gap: 5px;
+    gap: 10px;
     align-items: center;
     flex: 1;
+    padding: 6px 0;
+    min-width: 0;
     
     .nav-item {
       display: flex;
       align-items: center;
-      gap: 6px;
-      padding: 8px 16px;
-      color: #666;
-      font-size: 14px;
-      border-radius: 6px;
-      transition: all 0.3s;
+      gap: 8px;
+      min-height: 42px;
+      padding: 0 14px;
+      color: #526174;
+      font-size: 15px;
+      font-weight: 600;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      letter-spacing: 0;
+      transition: all 0.24s ease;
       text-decoration: none;
       white-space: nowrap;
       
       .el-icon {
         font-size: 16px;
+        color: #7a889b;
+        transition: color 0.24s ease, transform 0.24s ease;
+      }
+
+      span {
+        line-height: 1;
       }
       
       &:hover {
-        background: #f5f7fa;
+        background: rgba(64, 158, 255, 0.12);
+        border-color: rgba(64, 158, 255, 0.16);
         color: #409eff;
+
+        .el-icon {
+          color: #409eff;
+          transform: translateY(-0.5px);
+        }
       }
       
       &.active {
-        background: #e8f4ff;
-        color: #409eff;
+        background: #409eff;
+        border-color: #409eff;
+        color: #ffffff;
+        box-shadow: 0 10px 24px rgba(64, 158, 255, 0.24);
+
+        .el-icon {
+          color: #ffffff;
+        }
       }
     }
   }
@@ -210,17 +257,33 @@ const handleLogout = () => {
   .header-actions {
     display: flex;
     align-items: center;
-    gap: 12px;
-    
-    .action-btn {
-      background: #f5f7fa;
-      border: none;
-      color: #666;
-      
+    gap: 14px;
+
+    .auth-btn {
+      min-height: 40px;
+      padding: 0 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(64, 158, 255, 0.16);
+      background: rgba(64, 158, 255, 0.1);
+      color: #409eff;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0;
+      box-shadow: none;
+      transition: all 0.24s ease;
+
       &:hover {
-        background: #e8f4ff;
-        color: #409eff;
+        background: #409eff;
+        border-color: #409eff;
+        color: #fff;
       }
+    }
+    
+    :deep(.el-avatar) {
+      width: 38px;
+      height: 38px;
+      border: 2px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
     }
   }
 }
@@ -229,7 +292,7 @@ const handleLogout = () => {
   .header {
     .header-content {
       height: auto;
-      padding: 10px 0;
+      padding: 12px 0;
       flex-wrap: wrap;
     }
     
@@ -241,20 +304,29 @@ const handleLogout = () => {
       order: 3;
       width: 100%;
       justify-content: space-around;
-      padding-top: 10px;
+      padding-top: 12px;
       border-top: 1px solid #f0f0f0;
       
       .nav-item {
-        padding: 6px 12px;
+        min-height: 38px;
+        padding: 0 10px;
         font-size: 13px;
+        font-weight: 600;
+        border-radius: 10px;
         
         .el-icon {
-          font-size: 14px;
+          font-size: 15px;
         }
         
         span {
           display: none;
         }
+      }
+    }
+
+    &.header-transparent {
+      .nav {
+        border-top: none;
       }
     }
   }

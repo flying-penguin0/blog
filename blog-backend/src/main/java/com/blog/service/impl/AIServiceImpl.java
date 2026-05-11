@@ -188,7 +188,5 @@ public class AIServiceImpl implements AIService {
                 }
             }
         }
-        
-        log.info("DeepSeek API 调用完成");
     }
 }

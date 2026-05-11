@@ -113,17 +113,29 @@
             <div class="card">
               <h3>📢 公告</h3>
               <div v-if="announcements.length === 0" class="empty">暂无公告</div>
-              <div v-else class="announcement-list">
-                <div 
+              <el-carousel 
+                v-else 
+                :interval="2000" 
+                arrow="never"
+                height="320px"
+                indicator-position="inside"
+                class="announcement-carousel"
+              >
+                <el-carousel-item 
                   v-for="announcement in announcements" 
                   :key="announcement.id"
-                  class="announcement-item"
                 >
-                  <h4>{{ announcement.title }}</h4>
-                  <p>{{ announcement.content }}</p>
-                  <span class="date">{{ formatDate(announcement.createTime) }}</span>
-                </div>
-              </div>
+                  <div class="announcement-item">
+                    <div class="announcement-header">
+                      <h4>{{ announcement.title }}</h4>
+                      <span class="date">{{ formatDate(announcement.createTime) }}</span>
+                    </div>
+                    <div class="announcement-body">
+                      <p>{{ announcement.content }}</p>
+                    </div>
+                  </div>
+                </el-carousel-item>
+              </el-carousel>
             </div>
             
             <div class="card">
@@ -517,16 +529,108 @@ onMounted(() => {
   .card {
     background: #fff;
     border-radius: 8px;
-    padding: 20px;
+    padding: 16px 16px 12px 16px;
     margin-bottom: 20px;
     
     h3 {
-      margin-bottom: 15px;
+      margin: 0 0 8px 0;
       font-size: 18px;
       color: #333;
       font-weight: 600;
-      padding-bottom: 10px;
+      padding-bottom: 8px;
       border-bottom: 2px solid #409eff;
+    }
+  }
+  
+  .announcement-carousel {
+    margin-top: 12px;
+    
+    :deep(.el-carousel__container) {
+      height: 320px !important;
+      border-radius: 8px;
+      overflow: hidden;
+      background: linear-gradient(180deg, #f8fbff 0%, #eef5ff 100%);
+      border: 1px solid #e4efff;
+    }
+    
+    :deep(.el-carousel__indicators--inside) {
+      bottom: 12px;
+    }
+    
+    :deep(.el-carousel__indicator) {
+      .el-carousel__button {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: rgba(64, 158, 255, 0.28);
+        opacity: 1;
+      }
+      
+      &.is-active .el-carousel__button {
+        background: #409eff;
+        opacity: 1;
+      }
+    }
+    
+    .announcement-item {
+      box-sizing: border-box;
+      padding: 18px 20px 36px;
+      height: 320px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      
+      .announcement-header {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #dbe9ff;
+      }
+      
+      h4 {
+        font-size: 18px;
+        color: #1f2d3d;
+        margin: 0;
+        font-weight: 600;
+        line-height: 1.6;
+        word-break: break-word;
+      }
+      
+      .announcement-body {
+        flex: 1;
+        overflow-y: auto;
+        padding-right: 4px;
+        
+        &::-webkit-scrollbar {
+          width: 6px;
+        }
+        
+        &::-webkit-scrollbar-thumb {
+          background: rgba(64, 158, 255, 0.28);
+          border-radius: 999px;
+        }
+        
+        &::-webkit-scrollbar-track {
+          background: transparent;
+        }
+      }
+      
+      p {
+        font-size: 14px;
+        color: #4e5969;
+        line-height: 1.9;
+        margin: 0;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      
+      .date {
+        font-size: 12px;
+        color: #7f8ea3;
+        display: block;
+        margin: 0;
+      }
     }
   }
   
@@ -534,6 +638,10 @@ onMounted(() => {
     .announcement-item {
       padding: 15px 0;
       border-bottom: 1px solid #f0f0f0;
+      
+      &:first-child {
+        padding-top: 0;
+      }
       
       &:last-child {
         border-bottom: none;
@@ -571,6 +679,10 @@ onMounted(() => {
       border-bottom: 1px solid #f0f0f0;
       cursor: pointer;
       transition: all 0.3s;
+      
+      &:first-child {
+        padding-top: 0;
+      }
       
       &:hover {
         background: #f5f7fa;

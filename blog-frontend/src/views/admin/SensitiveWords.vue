@@ -113,6 +113,8 @@
     <a-modal
       v-model:open="modalVisible"
       :title="modalTitle"
+      okText="确认"
+      cancelText="取消"
       @ok="handleSubmit"
       @cancel="handleCancel"
     >

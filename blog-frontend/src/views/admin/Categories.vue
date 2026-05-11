@@ -88,6 +88,8 @@
     <a-modal
       v-model:open="showDialog"
       :title="dialogTitle"
+      okText="确认"
+      cancelText="取消"
       @ok="saveCategory"
       :confirmLoading="saving"
     >

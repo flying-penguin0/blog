@@ -87,6 +87,8 @@
     <a-modal
       v-model:open="showDialog"
       :title="dialogTitle"
+      okText="确认"
+      cancelText="取消"
       @ok="saveAnnouncement"
       :confirmLoading="saving"
       width="600px"

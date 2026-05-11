@@ -6,7 +6,7 @@ import Antd from 'ant-design-vue'
 import 'ant-design-vue/dist/reset.css'
 import 'normalize.css'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
-import Vue3Danmaku from 'vue3-danmaku'
+import VueDanmaku from 'vue-danmaku'
 
 import App from './App.vue'
 import router from './router'
@@ -29,7 +29,7 @@ app.use(ElementPlus, {
   zIndex: 3000
 })
 app.use(Antd)
-app.use(Vue3Danmaku)
+app.use(VueDanmaku)
 
 // 初始化用户信息
 const userStore = useUserStore()
