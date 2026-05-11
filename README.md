@@ -308,31 +308,31 @@ docker run -d \
 ## 🎯 功能特性
 
 ### 📝 文章管理
-![文章管理](img_1.png)
+![文章管理](/images/img_1.png)
 
 #### 前台功能
-![前台功能](img_2.png)
+![前台功能](/images/img_2.png)
 
 #### 编辑器功能
-![输入图片说明](https://foruda.gitee.com/images/1769865514713008750/ba96a48d_14951868.png "屏幕截图")
+![编辑器](/images/img_6.png)
 
 #### 后台管理
-![后台管理](img_3.png)
+![后台管理](/images/img_3.png)
 
 ### 💬 评论系统
-![输入图片说明](https://foruda.gitee.com/images/1769865637555311881/d76741a3_14951868.png "屏幕截图")
+![评论系统](/images/img_7.png)
 
 ### 💭 聊天室
-![聊天室](img_4.png)
+![聊天室](/images/img_4.png)
 
 ### 📮 留言板
-![留言板](img_5.png)
+![留言板](/images/img_5.png)
 
 #### 编辑器 AI 助手
-![输入图片说明](https://foruda.gitee.com/images/1769865876729883186/b1c891bf_14951868.png "屏幕截图")
+![编辑器AI助手](/images/img_8.png)
 
 #### 文章页 AI 助手
-![输入图片说明](https://foruda.gitee.com/images/1769865962602595418/76429bdf_14951868.png "屏幕截图")
+![文章页AI助手](/images/img_9.png)
 
 ---
 
