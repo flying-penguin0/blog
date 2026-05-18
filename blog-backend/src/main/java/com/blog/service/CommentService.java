@@ -5,6 +5,7 @@ import com.blog.common.PageResult;
 import com.blog.dto.CommentDTO;
 import com.blog.entity.Comment;
 import com.blog.vo.CommentVO;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
 
@@ -19,7 +20,7 @@ public interface CommentService extends IService<Comment> {
      * 发表评论
      * @return 评论状态（approved 或 pending）
      */
-    String createComment(CommentDTO dto, Long userId);
+    String createComment(CommentDTO dto, Long userId, HttpServletRequest request);
     
     /**
      * 删除评论

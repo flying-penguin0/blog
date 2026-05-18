@@ -16,8 +16,11 @@ import com.blog.mapper.CommentMapper;
 import com.blog.mapper.CommentLikeMapper;
 import com.blog.mapper.UserMapper;
 import com.blog.service.CommentService;
+import com.blog.service.IpLocationService;
+import com.blog.utils.CommentClientInfoUtil;
 import com.blog.utils.SensitiveWordUtil;
 import com.blog.vo.CommentVO;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +37,7 @@ import java.util.stream.Collectors;
  */
 @Service
 public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> implements CommentService {
-    
+
     @Autowired
     private UserMapper userMapper;
     
@@ -46,10 +49,13 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     
     @Autowired
     private SensitiveWordUtil sensitiveWordUtil;
-    
+
+    @Autowired
+    private IpLocationService ipLocationService;
+
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public String createComment(CommentDTO dto, Long userId) {
+    public String createComment(CommentDTO dto, Long userId, HttpServletRequest request) {
         // 检查文章是否存在
         Article article = articleMapper.selectById(dto.getArticleId());
         if (article == null) {
@@ -69,11 +75,16 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         boolean hasSensitiveWord = sensitiveWordUtil.containsSensitiveWord(content);
         
         // 创建评论
+        CommentClientInfoUtil.CommentClientInfo clientInfo = CommentClientInfoUtil.resolve(request);
         Comment comment = new Comment();
         comment.setArticleId(dto.getArticleId());
         comment.setUserId(userId);
         comment.setParentId(dto.getParentId());
         comment.setContent(content);
+        comment.setIpAddress(clientInfo.ipAddress());
+        comment.setUserAgent(clientInfo.userAgent());
+        comment.setBrowser(clientInfo.browser());
+        comment.setOperatingSystem(clientInfo.operatingSystem());
         
         // 根据敏感词检测结果设置状态
         String status;
@@ -331,7 +342,9 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
      */
     private CommentVO buildCommentVO(Comment comment) {
         CommentVO vo = BeanUtil.copyProperties(comment, CommentVO.class);
-        
+        vo.setProvince(ipLocationService.resolveLocation(comment.getIpAddress()));
+        vo.setBrowserVersion(CommentClientInfoUtil.detectBrowserVersion(comment.getUserAgent()));
+        vo.setOperatingSystemVersion(CommentClientInfoUtil.detectOperatingSystemVersion(comment.getUserAgent()));
         // 查询评论用户信息
         User user = userMapper.selectById(comment.getUserId());
         if (user != null) {
@@ -354,7 +367,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         
         return vo;
     }
-    
+
     /**
      * 构建评论树形结构
      */

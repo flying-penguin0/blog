@@ -125,7 +125,7 @@ public class AIServiceImpl implements AIService {
         
         requestBody.put("messages", messages);
         requestBody.put("temperature", 0.7);
-        requestBody.put("max_tokens", 2000);
+        requestBody.put("max_tokens", 10000);
         requestBody.put("stream", true);
         
         // 转换为JSON

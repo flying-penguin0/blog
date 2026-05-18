@@ -38,6 +38,14 @@ public class Comment implements Serializable {
      * 评论内容
      */
     private String content;
+
+    private String ipAddress;
+
+    private String userAgent;
+
+    private String browser;
+
+    private String operatingSystem;
     
     /**
      * 状态（pending:待审核 approved:通过 rejected:拒绝）

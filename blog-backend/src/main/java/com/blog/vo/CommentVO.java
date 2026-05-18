@@ -29,6 +29,16 @@ public class CommentVO {
     private String status;
     
     private LocalDateTime createTime;
+
+    private String province;
+
+    private String browser;
+
+    private String browserVersion;
+
+    private String operatingSystem;
+
+    private String operatingSystemVersion;
     
     /**
      * 评论用户信息

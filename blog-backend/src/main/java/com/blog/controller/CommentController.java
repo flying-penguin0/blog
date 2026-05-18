@@ -34,7 +34,7 @@ public class CommentController {
     @PostMapping
     public Result<String> createComment(@Valid @RequestBody CommentDTO dto, HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
-        String status = commentService.createComment(dto, userId);
+        String status = commentService.createComment(dto, userId, request);
         
         if ("pending".equals(status)) {
             return Result.success("评论已提交，包含敏感词需要审核", status);
