@@ -329,10 +329,10 @@ docker run -d \
 ![留言板](/images/img_5.png)
 
 #### 编辑器 AI 助手
-![编辑器AI助手](/images/img_8.png)
+![编辑器AI助手](/images/img_9.png)
 
 #### 文章页 AI 助手
-![文章页AI助手](/images/img_9.png)
+![文章页AI助手](/images/img_8.png)
 
 ---
 

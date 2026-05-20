@@ -8,7 +8,7 @@
       <div class="button-icon">
         <img src="@/assets/images/dp.png" alt="AI" class="deepseek-icon" />
       </div>
-      <div class="button-text">AI助手</div>
+      <div class="button-text">{{ ui.buttonText }}</div>
     </div>
 
     <el-dialog
@@ -18,29 +18,24 @@
       :close-on-click-modal="false"
       :append-to-body="true"
       :z-index="10000"
+      :show-close="false"
       class="ai-dialog"
     >
-      <template #header>
-        <div class="custom-header">
-          <div class="header-left">
-            <div class="header-icon-wrap">
-              <img src="@/assets/images/dp.png" alt="AI" class="deepseek-icon-header" />
-            </div>
-            <div class="header-info">
-              <div class="header-title">AI 智能助手</div>
-              <div class="header-subtitle">基于文章内容的智能问答</div>
-            </div>
-          </div>
-          <div class="header-tag">Article Q&amp;A</div>
-        </div>
-      </template>
-
       <div class="chat-body">
+        <button
+          type="button"
+          class="dialog-close"
+          :aria-label="ui.closeLabel"
+          @click="showDialog = false"
+        >
+          <el-icon><Close /></el-icon>
+        </button>
+
         <div v-if="messages.length === 0" class="welcome-screen">
           <div class="welcome-panel">
-            <div class="welcome-icon">💬</div>
-            <h3 class="welcome-title">你好！我是AI助手</h3>
-            <p class="welcome-desc">我可以帮你理解这篇文章，试试下面的问题吧</p>
+            <img src="@/assets/images/dp.png" alt="DeepSeek" class="welcome-logo" />
+            <h3 class="welcome-title">{{ ui.welcomeTitle }}</h3>
+            <p class="welcome-desc">{{ ui.welcomeDesc }}</p>
           </div>
 
           <div class="question-group">
@@ -119,7 +114,7 @@
               @click="clearChat"
               :icon="Delete"
             >
-              清空对话
+              {{ ui.clearText }}
             </el-button>
           </div>
         </div>
@@ -130,13 +125,13 @@
               v-model="inputMessage"
               type="textarea"
               :rows="2"
-              placeholder="输入你的问题..."
-              @keydown.enter.prevent="handleEnter"
+              :placeholder="ui.placeholder"
+              @keydown.enter="handleEnter"
               :disabled="isGenerating"
               class="message-input"
             />
             <div class="input-footer">
-              <div class="input-hint">Enter 发送，Shift + Enter 换行</div>
+              <div class="input-hint">{{ ui.inputHint }}</div>
               <el-button
                 type="primary"
                 :loading="isGenerating"
@@ -145,7 +140,7 @@
                 class="send-btn"
               >
                 <el-icon v-if="!isGenerating"><Promotion /></el-icon>
-                {{ isGenerating ? '生成中...' : '发送' }}
+                {{ isGenerating ? ui.sendingText : ui.sendText }}
               </el-button>
             </div>
           </div>
@@ -158,7 +153,7 @@
 <script setup>
 import { ref, nextTick, computed } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Delete, Promotion } from '@element-plus/icons-vue'
+import { Close, Delete, Promotion } from '@element-plus/icons-vue'
 import { MdPreview } from 'md-editor-v3'
 import 'md-editor-v3/lib/preview.css'
 import { articleQA } from '@/api/ai'
@@ -181,11 +176,34 @@ const messagesRef = ref(null)
 
 const userAvatar = computed(() => userStore.user?.avatar || '/default-avatar.png')
 
+const ui = {
+  buttonText: '\u0041\u0049\u52a9\u624b',
+  welcomeTitle: '\u4f60\u597d\uff01\u6211\u662f\u0041\u0049\u52a9\u624b',
+  welcomeDesc: '\u6211\u53ef\u4ee5\u5e2e\u4f60\u7406\u89e3\u8fd9\u7bc7\u6587\u7ae0\uff0c\u8bd5\u8bd5\u4e0b\u9762\u7684\u95ee\u9898\u5427',
+  clearText: '\u6e05\u7a7a\u5bf9\u8bdd',
+  clearSuccess: '\u5bf9\u8bdd\u5df2\u6e05\u7a7a',
+  placeholder: '\u8f93\u5165\u4f60\u7684\u95ee\u9898...',
+  inputHint: 'Enter \u53d1\u9001\uff0cShift + Enter \u6362\u884c',
+  sendingText: '\u751f\u6210\u4e2d...',
+  sendText: '\u53d1\u9001',
+  closeLabel: '\u5173\u95ed',
+  errorTitle: '\u0041\u0049\u95ee\u7b54\u5931\u8d25',
+  errorRetry: '\u0041\u0049\u95ee\u7b54\u5931\u8d25\uff0c\u8bf7\u91cd\u8bd5',
+  iconSummary: '\uD83D\uDCDD',
+  iconOpinion: '\uD83D\uDCA1',
+  iconKnowledge: '\uD83D\uDD11',
+  iconExample: '\uD83D\uDCD6',
+  quickSummary: '\u603b\u7ed3\u8fd9\u7bc7\u6587\u7ae0',
+  quickOpinion: '\u6587\u7ae0\u7684\u4e3b\u8981\u89c2\u70b9\u662f\u4ec0\u4e48\uff1f',
+  quickKnowledge: '\u6709\u54ea\u4e9b\u5173\u952e\u77e5\u8bc6\u70b9\uff1f',
+  quickExample: '\u80fd\u5426\u4e3e\u4e2a\u4f8b\u5b50\u8bf4\u660e\uff1f'
+}
+
 const quickQuestions = [
-  { icon: '📝', text: '总结这篇文章' },
-  { icon: '💡', text: '文章的主要观点是什么？' },
-  { icon: '🔑', text: '有哪些关键知识点？' },
-  { icon: '📖', text: '能否举个例子说明？' }
+  { icon: ui.iconSummary, text: ui.quickSummary },
+  { icon: ui.iconOpinion, text: ui.quickOpinion },
+  { icon: ui.iconKnowledge, text: ui.quickKnowledge },
+  { icon: ui.iconExample, text: ui.quickExample }
 ]
 
 const sendMessage = () => {
@@ -215,8 +233,8 @@ const askQuestion = (question) => {
       scrollToBottom()
     },
     (error) => {
-      console.error('AI 问答失败:', error)
-      ElMessage.error('AI 问答失败，请重试')
+      console.error(ui.errorTitle + ':', error)
+      ElMessage.error(ui.errorRetry)
       isGenerating.value = false
     },
     () => {
@@ -231,7 +249,7 @@ const askQuestion = (question) => {
 const clearChat = () => {
   if (messages.value.length === 0) return
   messages.value = []
-  ElMessage.success('对话已清空')
+  ElMessage.success(ui.clearSuccess)
 }
 
 const scrollToBottom = () => {
@@ -287,166 +305,107 @@ const scrollToBottom = () => {
   }
 }
 
-.ai-dialog {
-  :deep(.el-dialog) {
-    width: min(680px, 92vw);
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 28px 80px rgba(15, 23, 42, 0.22);
-  }
-
-  :deep(.el-dialog__header) {
-    padding: 0;
-    margin: 0;
-    border-bottom: 1px solid #edf2f7;
-  }
-
-  :deep(.el-dialog__body) {
-    padding: 0;
-  }
-
-  :deep(.el-dialog__headerbtn) {
-    top: 18px;
-    right: 18px;
-  }
-}
-
-.custom-header {
+.chat-body {
+  position: relative;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 18px 22px 16px;
-  background:
-    radial-gradient(circle at top left, rgba(139, 92, 246, 0.14), transparent 34%),
-    linear-gradient(135deg, #f8fbff 0%, #eef6ff 100%);
+  flex-direction: column;
+  height: min(82vh, 820px);
+  min-height: 620px;
+  background: linear-gradient(180deg, #f8fbff 0%, #f4f8fc 100%);
+  max-width: 620px;
+  margin: 0 auto;
+  padding-top: 12px;
 }
 
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  min-width: 0;
-}
-
-.header-icon-wrap {
-  width: 46px;
-  height: 46px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #ffffff 0%, #e7f1ff 100%);
-  border: 1px solid rgba(91, 141, 239, 0.16);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
-}
-
-.deepseek-icon-header {
-  width: 30px;
-  height: 30px;
-  object-fit: contain;
-}
-
-.header-info {
-  min-width: 0;
-}
-
-.header-title {
-  font-size: 20px;
-  line-height: 1.2;
-  font-weight: 700;
-  color: #1f2a37;
-}
-
-.header-subtitle {
-  margin-top: 2px;
-  font-size: 12px;
-  color: #66758a;
-}
-
-.header-tag {
-  flex-shrink: 0;
-  height: 26px;
-  padding: 0 10px;
-  border-radius: 999px;
+.dialog-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #8a97ab;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: #3278d8;
-  background: rgba(80, 142, 255, 0.1);
-  border: 1px solid rgba(80, 142, 255, 0.16);
-}
+  cursor: pointer;
+  transition: background-color 0.18s ease, color 0.18s ease;
 
-.chat-body {
-  display: flex;
-  flex-direction: column;
-  height: 72vh;
-  min-height: 540px;
-  max-height: 760px;
-  background: #f7f9fc;
+  &:hover {
+    background: rgba(15, 23, 42, 0.06);
+    color: #334155;
+  }
+
+  :deep(.el-icon) {
+    font-size: 16px;
+    font-weight: 600;
+  }
 }
 
 .welcome-screen {
   flex: 1;
-  padding: 18px 22px 14px;
-  overflow-y: auto;
+  padding: 26px 22px 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 12px;
 }
 
 .welcome-panel {
-  padding: 20px 18px;
-  border-radius: 16px;
+  padding: 24px 24px 20px;
+  border-radius: 20px;
   text-align: center;
   background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
   border: 1px solid #e8eef6;
-  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
 }
 
-.welcome-icon {
-  font-size: 30px;
-  line-height: 1;
-  margin-bottom: 10px;
+.welcome-logo {
+  width: 34px;
+  height: 34px;
+  display: block;
+  margin: 0 auto 10px;
+  object-fit: contain;
 }
 
 .welcome-title {
   margin: 0;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
   color: #1f2a37;
 }
 
 .welcome-desc {
-  margin: 8px auto 0;
-  max-width: 400px;
+  margin: 10px auto 0;
+  max-width: 420px;
   font-size: 13px;
   line-height: 1.6;
   color: #6b778c;
 }
 
-.question-group {
-  margin-top: 14px;
-}
-
 .question-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 12px;
 }
 
 .question-card {
   width: 100%;
   min-height: 84px;
-  padding: 14px;
+  padding: 14px 16px;
   border: 1px solid #e7edf5;
-  border-radius: 14px;
+  border-radius: 16px;
   background: #fff;
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 14px;
   text-align: left;
   cursor: pointer;
   transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
@@ -465,7 +424,7 @@ const scrollToBottom = () => {
 
 .question-text {
   font-size: 13px;
-  line-height: 1.4;
+  line-height: 1.5;
   font-weight: 600;
   color: #334155;
 }
@@ -480,7 +439,7 @@ const scrollToBottom = () => {
 .messages-wrapper {
   flex: 1;
   min-height: 0;
-  padding: 16px 22px 12px;
+  padding: 44px 22px 10px;
   overflow-y: auto;
 }
 
@@ -520,13 +479,13 @@ const scrollToBottom = () => {
 .message-bubble {
   max-width: min(78%, 560px);
   padding: 12px 14px;
-  border-radius: 14px;
+  border-radius: 16px;
 }
 
 .message-item.user .message-bubble {
   color: #fff;
-  background: linear-gradient(135deg, #4d9cff 0%, #3278d8 100%);
-  box-shadow: 0 14px 28px rgba(50, 120, 216, 0.18);
+  background: #409eff;
+  box-shadow: 0 14px 28px rgba(64, 158, 255, 0.22);
 }
 
 .message-item.assistant .message-bubble {
@@ -594,38 +553,39 @@ const scrollToBottom = () => {
 }
 
 .quick-actions {
-  padding: 8px 22px 0;
+  padding: 6px 22px 0;
   display: flex;
   justify-content: flex-end;
 }
 
 .input-section {
-  padding: 12px 22px 18px;
+  padding: 4px 22px 18px;
 }
 
 .input-shell {
-  border-radius: 16px;
+  border-radius: 18px;
   border: 1px solid #dfe8f3;
   background: #fff;
-  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.08);
   padding: 8px;
 }
 
 .message-input {
   :deep(.el-textarea__inner) {
-    min-height: 68px !important;
+    min-height: 72px !important;
     border: 0;
     box-shadow: none;
     resize: none;
-    padding: 8px 8px 0;
+    padding: 8px 10px 0;
     font-size: 13px;
     line-height: 1.6;
     color: #243244;
+    background: transparent;
   }
 }
 
 .input-footer {
-  margin-top: 4px;
+  margin-top: 8px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -639,13 +599,18 @@ const scrollToBottom = () => {
 }
 
 .send-btn {
-  min-width: 92px;
-  height: 36px;
+  min-width: 108px;
+  height: 42px;
   border: 0;
   border-radius: 999px;
-  background: linear-gradient(135deg, #4d9cff 0%, #3278d8 100%);
-  box-shadow: 0 12px 24px rgba(50, 120, 216, 0.18);
+  background: #409eff;
+  box-shadow: 0 12px 24px rgba(64, 158, 255, 0.22);
   font-weight: 600;
+
+  &:hover,
+  &:focus-visible {
+    background: #409eff;
+  }
 }
 
 @keyframes typing {
@@ -662,26 +627,21 @@ const scrollToBottom = () => {
 
 @media (max-width: 768px) {
   .chat-body {
-    height: 78vh;
-    min-height: 520px;
+    height: 84vh;
+    min-height: 600px;
   }
 
-  .custom-header,
+  .dialog-close {
+    top: 8px;
+    right: 8px;
+  }
+
   .welcome-screen,
   .messages-wrapper,
   .quick-actions,
   .input-section {
     padding-left: 18px;
     padding-right: 18px;
-  }
-
-  .custom-header {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .header-title {
-    font-size: 22px;
   }
 
   .question-grid {
@@ -706,3 +666,26 @@ const scrollToBottom = () => {
   }
 }
 </style>
+
+<style lang="scss">
+.ai-dialog.el-dialog {
+  width: min(720px, 92vw);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 32px 88px rgba(15, 23, 42, 0.2);
+}
+
+.ai-dialog .el-dialog__header {
+  display: none !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+}
+
+.ai-dialog .el-dialog__body {
+  padding: 0 !important;
+}
+</style>
+

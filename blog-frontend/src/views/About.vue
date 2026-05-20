@@ -25,10 +25,10 @@
                 <span class="nav-icon">✨</span>
                 <span>核心功能</span>
               </a>
-              <!-- <a href="#links" class="nav-link" :class="{ active: activeSection === 'links' }">
+              <a href="#links" class="nav-link" :class="{ active: activeSection === 'links' }">
                 <span class="nav-icon">🔗</span>
                 <span>开源地址</span>
-              </a> -->
+              </a>
             </nav>
           </div>
         </aside>
