@@ -204,13 +204,13 @@ cd blog-project
 mysql -u root -p
 
 # 创建数据库
-CREATE DATABASE blog_system CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE blog CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 # 使用数据库
-USE blog_system;
+USE blog;
 
 # 执行建表脚本
-source docs/blog_system.sql
+source docs/blog.sql
 ```
 
 ### 3️⃣ 配置后端
@@ -220,7 +220,7 @@ source docs/blog_system.sql
 ```yaml
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/blog_system?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://localhost:3306/blog?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
     username: root
     password: your_password
     
